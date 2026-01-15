@@ -62,11 +62,40 @@ document.addEventListener('DOMContentLoaded', updateElectionStatus);
 // ADMIN LOGIN
 // ============================================================================
 
+// ============================================================================
+// LOADING UTILS
+// ============================================================================
+
+function showGlobalLoader(text) {
+    const loader = document.getElementById('globalLoader');
+    const loaderText = document.getElementById('loaderText');
+    if (loader && loaderText) {
+        loaderText.textContent = text;
+        loader.classList.remove('hidden');
+    }
+}
+
+function hideGlobalLoader() {
+    const loader = document.getElementById('globalLoader');
+    if (loader) loader.classList.add('hidden');
+}
+
+// ============================================================================
+// ADMIN LOGIN
+// ============================================================================
+
 document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    const originalText = submitBtn.innerText;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ Connecting...";
+    }
+
+    showGlobalLoader('Authenticating Shadow Admin...');
 
     const email = document.getElementById('adminEmail').value.trim();
 
@@ -86,7 +115,6 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
             // Configure OTP Modal for Admin
             const otpModal = document.getElementById('otpModal');
             otpModal.querySelector('.modal-title').textContent = "🔐 Admin Verification";
-            // Reset modal text and message
             const otpText = otpModal.querySelector('p');
             otpText.textContent = data.message;
             document.getElementById('otpForm').dataset.type = 'admin';
@@ -94,13 +122,21 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
             window.showModal('otpModal');
         } else {
             alert('❌ ' + data.message);
-            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
-        if (submitBtn) submitBtn.disabled = false;
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
     }
 });
+
+// ============================================================================
+// VOTER LOGIN
+// ============================================================================
 
 // ============================================================================
 // VOTER LOGIN
@@ -110,14 +146,24 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
     e.preventDefault();
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    const originalText = submitBtn.innerText;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ Sending OTP...";
+    }
+    showGlobalLoader('Verifying Voter & Sending OTP...');
 
     const email = document.getElementById('voterEmail').value.trim().toLowerCase();
     const department = document.getElementById('voterDepartment').value;
 
     if (!email || !department) {
         alert('❌ Please fill in all fields');
-        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
         return;
     }
 
@@ -125,7 +171,11 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
     const vitEmailPattern = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+@vit\.edu$/;
     if (!vitEmailPattern.test(email)) {
         alert('❌ Invalid VIT email format. Use: name.prn@vit.edu');
-        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
         return;
     }
 
@@ -153,11 +203,15 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
             window.showModal('otpModal');
         } else {
             alert('❌ ' + data.message);
-            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
-        if (submitBtn) submitBtn.disabled = false;
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
     }
 });
 
@@ -169,14 +223,24 @@ document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    const originalText = submitBtn.innerText;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ Verifying...";
+    }
+    showGlobalLoader('Verifying Code...');
 
     const otp = document.getElementById('otpCode').value.trim();
     const type = e.target.dataset.type; // 'admin' or 'voter'
 
     if (!otp || otp.length !== 6) {
         alert('❌ Please enter a valid 6-digit OTP');
-        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
         return;
     }
 
@@ -203,10 +267,14 @@ document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
             }
         } else {
             alert('❌ ' + data.message);
-            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
-        if (submitBtn) submitBtn.disabled = false;
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
     }
 });
