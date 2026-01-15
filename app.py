@@ -128,6 +128,15 @@ def add_candidate():
     candidate = candidate_registry.add_candidate(safe_name, department, manifesto)
     return jsonify({"success": True, "message": "Candidate added", "candidate": candidate.to_dict()})
 
+@app.route('/api/admin/candidates', methods=['GET'])
+def admin_get_candidates():
+    admin_email = request.args.get('admin_email')
+    if not utils.is_shadow_admin(admin_email):
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+    
+    candidates = candidate_registry.get_all()
+    return jsonify({"success": True, "candidates": [c.to_dict() for c in candidates]})
+
 @app.route('/api/admin/candidate/remove', methods=['DELETE'])
 def remove_candidate():
     data = request.json

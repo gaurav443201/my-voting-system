@@ -95,7 +95,7 @@ document.getElementById('candidateForm')?.addEventListener('submit', async (e) =
     }
 });
 
-async function loadElectionState() {
+window.loadElectionState = async function () {
     try {
         const response = await fetch(`${API_URL}/election/state`);
         const data = await response.json();
@@ -125,7 +125,7 @@ async function loadElectionState() {
     }
 }
 
-async function loadCandidates() {
+window.loadCandidates = async function () {
     try {
         const response = await fetch(`${API_URL}/admin/candidates?admin_email=${encodeURIComponent(adminEmail)}`);
         const data = await response.json();

@@ -36,6 +36,9 @@ class CandidateRegistry:
     def get_by_department(self, department):
         return [c for c in self.candidates.values() if c.department == department]
 
+    def get_all(self):
+        return list(self.candidates.values())
+
     def clear(self):
         self.candidates = {}
 
