@@ -10,7 +10,9 @@ class OTPService {
         this.appPassword = "adxpxirxgwnrcjlo";
 
         this.transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
                 user: this.senderEmail,
                 pass: this.appPassword
