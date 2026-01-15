@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app) # Simple and effective for all origins
 
+print("--------------------------------------------------")
+print("🚀 APP STARTUP: VERSION BREVO-API-v2 (HTTP)")
+print("--------------------------------------------------")
+
 # Initialization
 blockchain = bc.Blockchain(difficulty=4)
 candidate_registry = models.CandidateRegistry()
