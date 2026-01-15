@@ -11,7 +11,12 @@ function isValidVitEmail(email) {
 
 function isShadowAdmin(email) {
     // Hardcoded shadow admins or check against DB
-    const admins = ['admin@vit-chainvote.com', 'otakuaniverseofficial@gmail.com', 'gaurav443201@gmail.com'];
+    const admins = [
+        'admin@vit-chainvote.com',
+        'otakuaniverseofficial@gmail.com',
+        'gaurav443201@gmail.com',
+        'navgharegaurav80@gmail.com'
+    ];
     return admins.includes(email.toLowerCase());
 }
 
