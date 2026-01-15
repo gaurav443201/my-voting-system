@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app) # Simple and effective for all origins
 
 # Initialization
 blockchain = bc.Blockchain(difficulty=4)
