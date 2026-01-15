@@ -1,7 +1,7 @@
 services:
-  # Backend Python API Service
+  # All-in-One Voting System (Backend + Frontend)
   - type: web
-    name: vit-chainvote-backend
+    name: vit-chainvote
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
@@ -12,14 +12,3 @@ services:
       - key: PORT
         value: 5000
     healthCheckPath: /api/election/state
-
-  # Frontend Static Site
-  - type: static
-    name: vit-chainvote-frontend
-    env: static
-    buildCommand: null
-    staticPublishPath: ./frontend
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html

@@ -7,12 +7,31 @@ import ai_service
 import utils
 import logging
 
+import os
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-CORS(app) # Simple and effective for all origins
+# Serve static files from 'frontend' folder
+app = Flask(__name__, static_folder='frontend', static_url_path='')
+CORS(app)
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+@app.route('/results')
+def results_page():
+    return app.send_static_file('results.html')
+
+@app.route('/admin')
+def admin_page():
+    return app.send_static_file('admin.html')
+
+@app.route('/voter')
+def voter_page():
+    return app.send_static_file('voter.html')
 
 print("--------------------------------------------------")
 print("🚀 APP STARTUP: VERSION BREVO-API-v2 (HTTP)")
