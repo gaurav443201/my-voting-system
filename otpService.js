@@ -50,7 +50,7 @@ class OTPService {
 
     async sendOTPEmail(recipientEmail, otp) {
         const mailOptions = {
-            from: `"VIT-ChainVote" <${this.senderEmail}>`,
+            from: this.senderEmail,
             to: recipientEmail,
             subject: 'Your OTP Code - VIT-ChainVote',
             text: `Your VIT-ChainVote OTP is: ${otp}\n\nThis code will expire in 5 minutes.`
@@ -70,10 +70,14 @@ class OTPService {
         const otp = this.generateOTP();
         this.storeOTP(email, otp);
 
-        // Node.js is naturally non-blocking. We don't await this so the API responds instantly.
-        this.sendOTPEmail(email, otp).catch(err => console.error("Background OTP send failed:", err));
+        console.log(`🔌 Attempting to send SSL OTP to ${email}...`);
+        const sent = await this.sendOTPEmail(email, otp);
 
-        return { success: true, message: "OTP verification process initiated" };
+        if (sent) {
+            return { success: true, message: "OTP sent successfully" };
+        } else {
+            throw new Error("SMTP delivery failed. Check Render logs for details.");
+        }
     }
 }
 
