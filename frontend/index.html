@@ -173,303 +173,287 @@
     </footer>
 
     <script src="js/config.js"></script>
-    <script>
-        // Use API_URL from config.js
-        const API_URL = window.CONFIG.API_URL;
+    const data = await response.json();
 
-        // Admin Login Flow
-        document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('adminEmail').value.trim();
+    if (data.success) {
+    // Success means OTP sent (or test mode active)
+    localStorage.setItem('pendingAdminEmail', email);
+    closeModal('adminLoginModal');
 
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
+    // Show OTP modal specifically for admin
+    const otpModal = document.getElementById('otpModal');
+    const otpTitle = otpModal.querySelector('.modal-title');
+    const otpText = otpModal.querySelector('p');
 
-                const data = await response.json();
+    otpTitle.textContent = "🔐 Admin Verification";
+    otpText.textContent = data.message;
 
-                if (data.success) {
-                    // Success means OTP sent (or test mode active)
-                    localStorage.setItem('pendingAdminEmail', email);
-                    closeModal('adminLoginModal');
+    // Mark this OTP form as admin verification
+    document.getElementById('otpForm').dataset.type = 'admin';
 
-                    // Show OTP modal specifically for admin
-                    const otpModal = document.getElementById('otpModal');
-                    const otpTitle = otpModal.querySelector('.modal-title');
-                    const otpText = otpModal.querySelector('p');
+    showModal('otpModal');
+    alert(`✅ ${data.message}`);
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    });
 
-                    otpTitle.textContent = "🔐 Admin Verification";
-                    otpText.textContent = data.message;
+    // Voter Login Flow
+    document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('voterEmail').value.trim().toLowerCase();
+    const department = document.getElementById('voterDepartment').value;
 
-                    // Mark this OTP form as admin verification
-                    document.getElementById('otpForm').dataset.type = 'admin';
+    try {
+    const response = await fetch(`${API_URL}/voter/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, department })
+    });
 
-                    showModal('otpModal');
-                    alert(`✅ ${data.message}`);
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        });
+    const data = await response.json();
 
-        // Voter Login Flow
-        document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('voterEmail').value.trim().toLowerCase();
-            const department = document.getElementById('voterDepartment').value;
+    if (data.success) {
+    localStorage.setItem('voterEmail', email);
+    localStorage.setItem('voterDepartment', department);
+    closeModal('voterLoginModal');
 
-            try {
-                const response = await fetch(`${API_URL}/voter/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, department })
-                });
+    // Reset OTP modal to voter mode
+    const otpModal = document.getElementById('otpModal');
+    const otpTitle = otpModal.querySelector('.modal-title');
+    const otpText = otpModal.querySelector('p');
 
-                const data = await response.json();
+    otpTitle.textContent = "📧 Enter OTP";
+    otpText.textContent = data.message;
 
-                if (data.success) {
-                    localStorage.setItem('voterEmail', email);
-                    localStorage.setItem('voterDepartment', department);
-                    closeModal('voterLoginModal');
+    document.getElementById('otpForm').dataset.type = 'voter';
 
-                    // Reset OTP modal to voter mode
-                    const otpModal = document.getElementById('otpModal');
-                    const otpTitle = otpModal.querySelector('.modal-title');
-                    const otpText = otpModal.querySelector('p');
+    showModal('otpModal');
+    alert(`✅ ${data.message}`);
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    });
 
-                    otpTitle.textContent = "📧 Enter OTP";
-                    otpText.textContent = data.message;
+    // OTP Verification Flow
+    document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const otp = document.getElementById('otpCode').value.trim();
+    const type = e.target.dataset.type;
 
-                    document.getElementById('otpForm').dataset.type = 'voter';
+    if (type === 'admin') {
+    const email = localStorage.getItem('pendingAdminEmail');
+    try {
+    const response = await fetch(`${API_URL}/admin/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp })
+    });
+    const data = await response.json();
+    if (data.success) {
+    localStorage.setItem('adminEmail', email);
+    localStorage.removeItem('pendingAdminEmail');
+    window.location.href = 'admin.html';
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    } else {
+    const email = localStorage.getItem('voterEmail');
+    try {
+    const response = await fetch(`${API_URL}/voter/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp })
+    });
+    const data = await response.json();
+    if (data.success) {
+    window.location.href = 'voter.html';
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    }
+    });
 
-                    showModal('otpModal');
-                    alert(`✅ ${data.message}`);
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        });
+    // Utility Functions
+    function showLoader(text = 'Processing...') {
+    const loader = document.getElementById('globalLoader');
+    document.getElementById('loaderText').textContent = text;
+    loader.classList.remove('hidden');
+    }
 
-        // OTP Verification Flow
-        document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const otp = document.getElementById('otpCode').value.trim();
-            const type = e.target.dataset.type;
+    function hideLoader() {
+    document.getElementById('globalLoader').classList.add('hidden');
+    }
 
-            if (type === 'admin') {
-                const email = localStorage.getItem('pendingAdminEmail');
-                try {
-                    const response = await fetch(`${API_URL}/admin/verify-otp`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, otp })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        localStorage.setItem('adminEmail', email);
-                        localStorage.removeItem('pendingAdminEmail');
-                        window.location.href = 'admin.html';
-                    } else {
-                        alert('❌ ' + data.message);
-                    }
-                } catch (error) {
-                    alert('❌ Error: ' + error.message);
-                }
-            } else {
-                const email = localStorage.getItem('voterEmail');
-                try {
-                    const response = await fetch(`${API_URL}/voter/verify-otp`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, otp })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        window.location.href = 'voter.html';
-                    } else {
-                        alert('❌ ' + data.message);
-                    }
-                } catch (error) {
-                    alert('❌ Error: ' + error.message);
-                }
-            }
-        });
+    function setBtnLoading(btnId, isLoading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (isLoading) {
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    } else {
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    }
+    }
 
-        // Utility Functions
-        function showLoader(text = 'Processing...') {
-            const loader = document.getElementById('globalLoader');
-            document.getElementById('loaderText').textContent = text;
-            loader.classList.remove('hidden');
-        }
+    // Admin Login Flow
+    document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value.trim();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
 
-        function hideLoader() {
-            document.getElementById('globalLoader').classList.add('hidden');
-        }
+    setBtnLoading(submitBtn.id || 'adminSubmitBtn', true);
+    showLoader('Authenticating Shadow...');
 
-        function setBtnLoading(btnId, isLoading) {
-            const btn = document.getElementById(btnId);
-            if (!btn) return;
-            if (isLoading) {
-                btn.classList.add('btn-loading');
-                btn.disabled = true;
-            } else {
-                btn.classList.remove('btn-loading');
-                btn.disabled = false;
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+    });
 
-        // Admin Login Flow
-        document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('adminEmail').value.trim();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+    const data = await response.json();
 
-            setBtnLoading(submitBtn.id || 'adminSubmitBtn', true);
-            showLoader('Authenticating Shadow...');
+    if (data.success) {
+    localStorage.setItem('pendingAdminEmail', email);
+    closeModal('adminLoginModal');
 
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
+    const otpModal = document.getElementById('otpModal');
+    const otpTitle = otpModal.querySelector('.modal-title');
+    const otpText = otpModal.querySelector('p');
 
-                const data = await response.json();
+    otpTitle.textContent = "🔐 Admin Verification";
+    otpText.textContent = data.message;
+    document.getElementById('otpForm').dataset.type = 'admin';
 
-                if (data.success) {
-                    localStorage.setItem('pendingAdminEmail', email);
-                    closeModal('adminLoginModal');
+    showModal('otpModal');
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Connection Error: ' + error.message);
+    } finally {
+    setBtnLoading(submitBtn.id || 'adminSubmitBtn', false);
+    hideLoader();
+    }
+    });
 
-                    const otpModal = document.getElementById('otpModal');
-                    const otpTitle = otpModal.querySelector('.modal-title');
-                    const otpText = otpModal.querySelector('p');
+    // Voter Login Flow
+    document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('voterEmail').value.trim().toLowerCase();
+    const department = document.getElementById('voterDepartment').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
 
-                    otpTitle.textContent = "🔐 Admin Verification";
-                    otpText.textContent = data.message;
-                    document.getElementById('otpForm').dataset.type = 'admin';
+    setBtnLoading(submitBtn.id || 'voterSubmitBtn', true);
+    showLoader('Sending OTP...');
 
-                    showModal('otpModal');
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Connection Error: ' + error.message);
-            } finally {
-                setBtnLoading(submitBtn.id || 'adminSubmitBtn', false);
-                hideLoader();
-            }
-        });
+    try {
+    const response = await fetch(`${API_URL}/voter/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, department })
+    });
 
-        // Voter Login Flow
-        document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('voterEmail').value.trim().toLowerCase();
-            const department = document.getElementById('voterDepartment').value;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+    const data = await response.json();
 
-            setBtnLoading(submitBtn.id || 'voterSubmitBtn', true);
-            showLoader('Sending OTP...');
+    if (data.success) {
+    localStorage.setItem('voterEmail', email);
+    localStorage.setItem('voterDepartment', department);
+    closeModal('voterLoginModal');
 
-            try {
-                const response = await fetch(`${API_URL}/voter/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, department })
-                });
+    const otpModal = document.getElementById('otpModal');
+    const otpTitle = otpModal.querySelector('.modal-title');
+    const otpText = otpModal.querySelector('p');
 
-                const data = await response.json();
+    otpTitle.textContent = "📧 Enter OTP";
+    otpText.textContent = data.message;
+    document.getElementById('otpForm').dataset.type = 'voter';
 
-                if (data.success) {
-                    localStorage.setItem('voterEmail', email);
-                    localStorage.setItem('voterDepartment', department);
-                    closeModal('voterLoginModal');
+    showModal('otpModal');
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Connection Error: ' + error.message);
+    } finally {
+    setBtnLoading(submitBtn.id || 'voterSubmitBtn', false);
+    hideLoader();
+    }
+    });
 
-                    const otpModal = document.getElementById('otpModal');
-                    const otpTitle = otpModal.querySelector('.modal-title');
-                    const otpText = otpModal.querySelector('p');
+    // OTP Verification Flow
+    document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const otp = document.getElementById('otpCode').value.trim();
+    const type = e.target.dataset.type;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
 
-                    otpTitle.textContent = "📧 Enter OTP";
-                    otpText.textContent = data.message;
-                    document.getElementById('otpForm').dataset.type = 'voter';
+    setBtnLoading(submitBtn.id || 'otpSubmitBtn', true);
+    showLoader('Verifying...');
 
-                    showModal('otpModal');
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Connection Error: ' + error.message);
-            } finally {
-                setBtnLoading(submitBtn.id || 'voterSubmitBtn', false);
-                hideLoader();
-            }
-        });
+    const endpoint = type === 'admin' ? '/admin/verify-otp' : '/voter/verify-otp';
+    const emailKey = type === 'admin' ? 'pendingAdminEmail' : 'voterEmail';
+    const email = localStorage.getItem(emailKey);
 
-        // OTP Verification Flow
-        document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const otp = document.getElementById('otpCode').value.trim();
-            const type = e.target.dataset.type;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+    try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp })
+    });
+    const data = await response.json();
+    if (data.success) {
+    if (type === 'admin') {
+    localStorage.setItem('adminEmail', email);
+    localStorage.removeItem('pendingAdminEmail');
+    window.location.href = 'admin.html';
+    } else {
+    window.location.href = 'voter.html';
+    }
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    } finally {
+    setBtnLoading(submitBtn.id || 'otpSubmitBtn', false);
+    hideLoader();
+    }
+    });
 
-            setBtnLoading(submitBtn.id || 'otpSubmitBtn', true);
-            showLoader('Verifying...');
+    function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function showAdminLogin() { showModal('adminLoginModal'); }
+    function showVoterLogin() { showModal('voterLoginModal'); }
 
-            const endpoint = type === 'admin' ? '/admin/verify-otp' : '/voter/verify-otp';
-            const emailKey = type === 'admin' ? 'pendingAdminEmail' : 'voterEmail';
-            const email = localStorage.getItem(emailKey);
-
-            try {
-                const response = await fetch(`${API_URL}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    if (type === 'admin') {
-                        localStorage.setItem('adminEmail', email);
-                        localStorage.removeItem('pendingAdminEmail');
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'voter.html';
-                    }
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            } finally {
-                setBtnLoading(submitBtn.id || 'otpSubmitBtn', false);
-                hideLoader();
-            }
-        });
-
-        function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function showAdminLogin() { showModal('adminLoginModal'); }
-        function showVoterLogin() { showModal('voterLoginModal'); }
-
-        async function updateStatus() {
-            try {
-                const response = await fetch(`${API_URL}/election/state`);
-                const data = await response.json();
-                if (data.success) {
-                    const badge = document.getElementById('electionStatus');
-                    const state = data.state.toUpperCase();
-                    badge.className = `status-badge status-${data.state}`;
-                    badge.innerHTML = `<span>${data.state === 'waiting' ? '⏸️' : data.state === 'live' ? '🔴' : '🔒'}</span> ${state}`;
-                }
-            } catch (e) { }
-        }
-        setInterval(updateStatus, 5000);
-        updateStatus();
+    async function updateStatus() {
+    try {
+    const response = await fetch(`${API_URL}/election/state`);
+    const data = await response.json();
+    if (data.success) {
+    const badge = document.getElementById('electionStatus');
+    const state = data.state.toUpperCase();
+    badge.className = `status-badge status-${data.state}`;
+    badge.innerHTML = `<span>${data.state === 'waiting' ? '⏸️' : data.state === 'live' ? '🔴' : '🔒'}</span> ${state}`;
+    }
+    } catch (e) { }
+    }
+    setInterval(updateStatus, 5000);
+    updateStatus();
     </script>
 </body>
 
