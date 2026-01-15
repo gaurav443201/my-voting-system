@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VIT-ChainVote - Secure Blockchain Voting System for VIT Institute Elections">
+    <title>🗳️ VIT-ChainVote | Secure Blockchain Voting</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+    <!-- Global Loading Overlay -->
+    <div id="globalLoader" class="loading-overlay hidden">
+        <div class="loader-vortex"></div>
+        <div class="loading-text" id="loaderText">Processing...</div>
+    </div>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                🗳️ VIT-ChainVote
+            </div>
+            <div class="nav-links">
+                <span class="status-badge" id="electionStatus">
+                    <span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span>
+                    Loading...
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">VIT-ChainVote</h1>
+            <p class="hero-subtitle">
+                Secure Blockchain Voting System<br>
+                Powered by Proof-of-Work Consensus & AI Technology
+            </p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="showAdminLogin()">
+                    🔐 Shadow Admin
+                </button>
+                <button class="btn btn-success" onclick="showVoterLogin()">
+                    🗳️ Cast Your Vote
+                </button>
+                <button class="btn btn-outline" onclick="window.location.href='results.html'">
+                    📊 View Results
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="glass-card">
+                    <h3>⛓️ Blockchain Secured</h3>
+                    <p>Every vote is recorded on an immutable blockchain with Proof-of-Work mining (difficulty 4).</p>
+                </div>
+                <div class="glass-card">
+                    <h3>🤖 AI-Powered</h3>
+                    <p>Gemini AI generates professional manifestos and provides post-election audit analysis.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>🔒 One Vote Only</h3>
+                    <p>Cryptographic hashing ensures each voter can only cast one vote per election cycle.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>📧 OTP Verified</h3>
+                    <p>Real-time 6-digit OTP sent to your VIT email for secure authentication.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🔐 Shadow Access</h2>
+                <p style="color: var(--text-secondary);">Authorized administrators only</p>
+            </div>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label class="form-label">Shadow Email</label>
+                    <input type="email" class="form-input" id="adminEmail" placeholder="shadow@gmail.com" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Enter
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('adminLoginModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Voter Login Modal -->
+    <div id="voterLoginModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🗳️ Voter Authentication</h2>
+                <p style="color: var(--text-secondary);">VIT Institute students only</p>
+            </div>
+            <form id="voterLoginForm">
+                <div class="form-group">
+                    <label class="form-label">VIT Email</label>
+                    <input type="email" class="form-input" id="voterEmail" placeholder="name.prn@vit.edu" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select class="form-select" id="voterDepartment" required>
+                        <option value="">Select your department</option>
+                        <option value="CSE">Computer Science & Engineering</option>
+                        <option value="IT">Information Technology</option>
+                        <option value="ENTC">Electronics & Telecommunication</option>
+                        <option value="MECH">Mechanical Engineering</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">
+                        Send OTP
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('voterLoginModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otpModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📧 Enter OTP</h2>
+                <p style="color: var(--text-secondary);">Check your email for the 6-digit code</p>
+            </div>
+            <form id="otpForm">
+                <div class="form-group">
+                    <label class="form-label">6-Digit Code</label>
+                    <input type="text" class="form-input" id="otpCode" placeholder="123456" maxlength="6"
+                        pattern="[0-9]{6}" required
+                        style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;">
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Verify
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('otpModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 3rem 0; border-top: 1px solid var(--border-color); margin-top: 4rem;">
+        <div class="container">
+            <p style="color: var(--text-muted);">
+                VIT-ChainVote © 2026 | Powered by Blockchain Technology<br>
+                Secured by Proof-of-Work Consensus | AI-Enhanced by Google Gemini
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Use API_URL from config.js
+        const API_URL = window.CONFIG.API_URL;
+
+        // Admin Login Flow
+        document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success means OTP sent (or test mode active)
+                    localStorage.setItem('pendingAdminEmail', email);
+                    closeModal('adminLoginModal');
+
+                    // Show OTP modal specifically for admin
+                    const otpModal = document.getElementById('otpModal');
+                    const otpTitle = otpModal.querySelector('.modal-title');
+                    const otpText = otpModal.querySelector('p');
+
+                    otpTitle.textContent = "🔐 Admin Verification";
+                    otpText.textContent = data.message;
+
+                    // Mark this OTP form as admin verification
+                    document.getElementById('otpForm').dataset.type = 'admin';
+
+                    showModal('otpModal');
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        });
+
+        // Voter Login Flow
+        document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('voterEmail').value.trim().toLowerCase();
+            const department = document.getElementById('voterDepartment').value;
+
+            try {
+                const response = await fetch(`${API_URL}/voter/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, department })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('voterEmail', email);
+                    localStorage.setItem('voterDepartment', department);
+                    closeModal('voterLoginModal');
+
+                    // Reset OTP modal to voter mode
+                    const otpModal = document.getElementById('otpModal');
+                    const otpTitle = otpModal.querySelector('.modal-title');
+                    const otpText = otpModal.querySelector('p');
+
+                    otpTitle.textContent = "📧 Enter OTP";
+                    otpText.textContent = data.message;
+
+                    document.getElementById('otpForm').dataset.type = 'voter';
+
+                    showModal('otpModal');
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        });
+
+        // OTP Verification Flow
+        document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('otpCode').value.trim();
+            const type = e.target.dataset.type;
+
+            if (type === 'admin') {
+                const email = localStorage.getItem('pendingAdminEmail');
+                try {
+                    const response = await fetch(`${API_URL}/admin/verify-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, otp })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('adminEmail', email);
+                        localStorage.removeItem('pendingAdminEmail');
+                        window.location.href = 'admin.html';
+                    } else {
+                        alert('❌ ' + data.message);
+                    }
+                } catch (error) {
+                    alert('❌ Error: ' + error.message);
+                }
+            } else {
+                const email = localStorage.getItem('voterEmail');
+                try {
+                    const response = await fetch(`${API_URL}/voter/verify-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, otp })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = 'voter.html';
+                    } else {
+                        alert('❌ ' + data.message);
+                    }
+                } catch (error) {
+                    alert('❌ Error: ' + error.message);
+                }
+            }
+        });
+
+        // Utility Functions
+        function showLoader(text = 'Processing...') {
+            const loader = document.getElementById('globalLoader');
+            document.getElementById('loaderText').textContent = text;
+            loader.classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('globalLoader').classList.add('hidden');
+        }
+
+        function setBtnLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            if (isLoading) {
+                btn.classList.add('btn-loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+            }
+        }
+
+        // Admin Login Flow
+        document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            setBtnLoading(submitBtn.id || 'adminSubmitBtn', true);
+            showLoader('Authenticating Shadow...');
+
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('pendingAdminEmail', email);
+                    closeModal('adminLoginModal');
+
+                    const otpModal = document.getElementById('otpModal');
+                    const otpTitle = otpModal.querySelector('.modal-title');
+                    const otpText = otpModal.querySelector('p');
+
+                    otpTitle.textContent = "🔐 Admin Verification";
+                    otpText.textContent = data.message;
+                    document.getElementById('otpForm').dataset.type = 'admin';
+
+                    showModal('otpModal');
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Connection Error: ' + error.message);
+            } finally {
+                setBtnLoading(submitBtn.id || 'adminSubmitBtn', false);
+                hideLoader();
+            }
+        });
+
+        // Voter Login Flow
+        document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('voterEmail').value.trim().toLowerCase();
+            const department = document.getElementById('voterDepartment').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            setBtnLoading(submitBtn.id || 'voterSubmitBtn', true);
+            showLoader('Sending OTP...');
+
+            try {
+                const response = await fetch(`${API_URL}/voter/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, department })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('voterEmail', email);
+                    localStorage.setItem('voterDepartment', department);
+                    closeModal('voterLoginModal');
+
+                    const otpModal = document.getElementById('otpModal');
+                    const otpTitle = otpModal.querySelector('.modal-title');
+                    const otpText = otpModal.querySelector('p');
+
+                    otpTitle.textContent = "📧 Enter OTP";
+                    otpText.textContent = data.message;
+                    document.getElementById('otpForm').dataset.type = 'voter';
+
+                    showModal('otpModal');
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Connection Error: ' + error.message);
+            } finally {
+                setBtnLoading(submitBtn.id || 'voterSubmitBtn', false);
+                hideLoader();
+            }
+        });
+
+        // OTP Verification Flow
+        document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('otpCode').value.trim();
+            const type = e.target.dataset.type;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            setBtnLoading(submitBtn.id || 'otpSubmitBtn', true);
+            showLoader('Verifying...');
+
+            const endpoint = type === 'admin' ? '/admin/verify-otp' : '/voter/verify-otp';
+            const emailKey = type === 'admin' ? 'pendingAdminEmail' : 'voterEmail';
+            const email = localStorage.getItem(emailKey);
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (type === 'admin') {
+                        localStorage.setItem('adminEmail', email);
+                        localStorage.removeItem('pendingAdminEmail');
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'voter.html';
+                    }
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                setBtnLoading(submitBtn.id || 'otpSubmitBtn', false);
+                hideLoader();
+            }
+        });
+
+        function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function showAdminLogin() { showModal('adminLoginModal'); }
+        function showVoterLogin() { showModal('voterLoginModal'); }
+
+        async function updateStatus() {
+            try {
+                const response = await fetch(`${API_URL}/election/state`);
+                const data = await response.json();
+                if (data.success) {
+                    const badge = document.getElementById('electionStatus');
+                    const state = data.state.toUpperCase();
+                    badge.className = `status-badge status-${data.state}`;
+                    badge.innerHTML = `<span>${data.state === 'waiting' ? '⏸️' : data.state === 'live' ? '🔴' : '🔒'}</span> ${state}`;
+                }
+            } catch (e) { }
+        }
+        setInterval(updateStatus, 5000);
+        updateStatus();
+    </script>
+</body>
+
+</html>

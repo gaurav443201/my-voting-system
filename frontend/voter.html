@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VIT-ChainVote Voter Interface">
+    <title>🗳️ Vote Now | VIT-ChainVote</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+    <!-- Global Loading Overlay -->
+    <div id="globalLoader" class="loading-overlay hidden">
+        <div class="loader-vortex"></div>
+        <div class="loading-text" id="loaderText">Processing...</div>
+    </div>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                🗳️ VIT-ChainVote
+            </div>
+            <div class="nav-links">
+                <span class="status-badge" id="electionStatus"></span>
+                <span id="voterInfo" style="color: var(--text-secondary);"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Waiting Room -->
+        <section id="waitingRoom" class="section hidden">
+            <div class="glass-card text-center">
+                <div style="font-size: 5rem; margin-bottom: 2rem;">⏸️</div>
+                <h2>Waiting Room</h2>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); margin: 2rem 0;">
+                    The election has not started yet.<br>
+                    Please wait for the Shadows to open the voting booth.
+                </p>
+                <div class="spinner"></div>
+            </div>
+        </section>
+
+        <!-- Voting Booth -->
+        <section id="votingBooth" class="section hidden">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2>🗳️ Cast Your Vote</h2>
+                    <div id="departmentInfo"></div>
+                </div>
+
+                <div id="candidatesList" class="candidates-grid">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vote Confirmation -->
+        <section id="voteConfirmation" class="section hidden">
+            <div class="glass-card text-center">
+                <div style="font-size: 5rem; margin-bottom: 2rem;">✅</div>
+                <h2>Vote Recorded Successfully!</h2>
+
+                <div class="txid-display">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Your vote has been mined into the blockchain
+                    </p>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Transaction Hash (TXID)</div>
+                    <div class="txid-hash" id="transactionHash"></div>
+                    <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+                        Block Index: <span id="blockIndex"></span>
+                    </div>
+                </div>
+
+                <div
+                    style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin: 2rem 0;">
+                    <h3 style="margin-bottom: 1rem;">You voted for:</h3>
+                    <div id="votedCandidate"></div>
+                </div>
+
+                <p style="color: var(--text-secondary); margin: 2rem 0;">
+                    🔒 Your vote is now immutable and secured by Proof-of-Work consensus.<br>
+                    Thank you for participating in the democratic process!
+                </p>
+
+                <button class="btn btn-outline" onclick="window.location.href='index.html'">
+                    Return to Home
+                </button>
+            </div>
+        </section>
+
+        <!-- Already Voted -->
+        <section id="alreadyVoted" class="section hidden">
+            <div class="glass-card text-center">
+                <div style="font-size: 5rem; margin-bottom: 2rem;">🔒</div>
+                <h2>Already Voted</h2>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); margin: 2rem 0;">
+                    You have already cast your vote in this election.<br>
+                    Each voter can only vote once per election cycle.
+                </p>
+                <button class="btn btn-outline" onclick="window.location.href='results.html'">
+                    View Results
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        const API_URL = window.CONFIG.API_URL;
+        let voterEmail = localStorage.getItem('voterEmail');
+        let voterDepartment = localStorage.getItem('voterDepartment');
+
+        // Check authentication
+        if (!voterEmail || !voterDepartment) {
+            window.location.href = 'index.html';
+        }
+
+        // Utility Functions
+        function showLoader(text = 'Processing...') {
+            const loader = document.getElementById('globalLoader');
+            if (loader) {
+                document.getElementById('loaderText').textContent = text;
+                loader.classList.remove('hidden');
+            }
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('globalLoader');
+            if (loader) loader.classList.add('hidden');
+        }
+
+        function setBtnLoading(btn, isLoading) {
+            if (!btn) return;
+            if (isLoading) {
+                btn.classList.add('btn-loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('voterInfo').textContent = voterEmail;
+
+        // Load initial state
+        checkVoterStatus();
+        loadElectionState();
+        setInterval(loadElectionState, 3000);
+
+        async function loadElectionState() {
+            try {
+                const response = await fetch(`${API_URL}/election/state`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const statusBadge = document.getElementById('electionStatus');
+                    const state = data.state.toUpperCase();
+
+                    statusBadge.className = `status-badge status-${data.state}`;
+                    statusBadge.textContent = `${state === 'WAITING' ? '⏸️' : state === 'LIVE' ? '🔴' : '🔒'} ${state}`;
+
+                    // Show appropriate section
+                    if (data.state === 'waiting') {
+                        showSection('waitingRoom');
+                    } else if (data.state === 'live') {
+                        checkVoterStatus();
+                    } else {
+                        window.location.href = 'results.html';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading state:', error);
+            }
+        }
+
+        async function checkVoterStatus() {
+            try {
+                const response = await fetch(`${API_URL}/voter/status?email=${encodeURIComponent(voterEmail)}`);
+                const data = await response.json();
+
+                if (data.success && data.has_voted) {
+                    showSection('alreadyVoted');
+                } else {
+                    loadCandidates();
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        async function loadCandidates() {
+            try {
+                const response = await fetch(`${API_URL}/voter/candidates?email=${encodeURIComponent(voterEmail)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('departmentInfo').textContent = `Department: ${data.department}`;
+
+                    const container = document.getElementById('candidatesList');
+
+                    if (data.candidates.length > 0) {
+                        container.innerHTML = data.candidates.map(c => `
+                            <div class="candidate-card">
+                                <h3 class="candidate-name">${c.name}</h3>
+                                <span class="candidate-department">${c.department}</span>
+                                <p class="candidate-manifesto">"${c.manifesto}"</p>
+                                <button class="btn btn-primary" onclick="castVote('${c.id}', this)" style="width: 100%;">
+                                    🗳️ Vote for ${c.name}
+                                </button>
+                            </div>
+                        `).join('');
+
+                        showSection('votingBooth');
+                    } else {
+                        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No candidates available for your department</p>';
+                        showSection('votingBooth');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+            }
+        }
+
+        async function castVote(candidateId, btn) {
+            if (!confirm('Confirm your vote? This action cannot be undone.')) return;
+
+            setBtnLoading(btn, true);
+            showLoader('Mining your vote into the block...');
+
+            try {
+                const response = await fetch(`${API_URL}/voter/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: voterEmail,
+                        candidate_id: candidateId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    confetti({
+                        particleCount: 200,
+                        spread: 100,
+                        origin: { y: 0.6 },
+                        colors: ['#667eea', '#764ba2', '#4facfe', '#00f2fe']
+                    });
+
+                    // Display confirmation
+                    document.getElementById('transactionHash').textContent = data.transaction_hash;
+                    document.getElementById('blockIndex').textContent = data.block_index;
+                    document.getElementById('votedCandidate').innerHTML = `
+                        <h3 style="color: #667eea;">${data.candidate.name}</h3>
+                        <p style="color: var(--text-secondary);">${data.candidate.department}</p>
+                    `;
+
+                    showSection('voteConfirmation');
+
+                    // Clear session
+                    localStorage.removeItem('voterEmail');
+                    localStorage.removeItem('voterDepartment');
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                setBtnLoading(btn, false);
+                hideLoader();
+            }
+        }
+
+        function showSection(sectionId) {
+            ['waitingRoom', 'votingBooth', 'voteConfirmation', 'alreadyVoted'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+    </script>
+</body>
+
+</html>
