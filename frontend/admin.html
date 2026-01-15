@@ -98,7 +98,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="regBtn">
                         🤖 Generate Manifesto & Register
                     </button>
                 </form>
@@ -136,253 +136,237 @@
     </div>
 
     <script src="js/config.js"></script>
-    <script>
-        const API_URL = window.CONFIG.API_URL;
-        let adminEmail = localStorage.getItem('adminEmail');
 
-        // Check authentication
-        if (!adminEmail) {
-            window.location.href = 'index.html';
-        }
+    function hideLoader() {
+    const loader = document.getElementById('globalLoader');
+    if (loader) loader.classList.add('hidden');
+    }
 
-        // Utility Functions
-        function showLoader(text = 'Processing...') {
-            const loader = document.getElementById('globalLoader');
-            if (loader) {
-                document.getElementById('loaderText').textContent = text;
-                loader.classList.remove('hidden');
-            }
-        }
+    function setBtnLoading(btnId, isLoading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (isLoading) {
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    } else {
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    }
+    }
 
-        function hideLoader() {
-            const loader = document.getElementById('globalLoader');
-            if (loader) loader.classList.add('hidden');
-        }
+    document.getElementById('adminEmail').textContent = adminEmail;
 
-        function setBtnLoading(btnId, isLoading) {
-            const btn = document.getElementById(btnId);
-            if (!btn) return;
-            if (isLoading) {
-                btn.classList.add('btn-loading');
-                btn.disabled = true;
-            } else {
-                btn.classList.remove('btn-loading');
-                btn.disabled = false;
-            }
-        }
+    // Load initial data
+    loadElectionState();
+    loadCandidates();
+    setInterval(loadElectionState, 3000);
 
-        document.getElementById('adminEmail').textContent = adminEmail;
+    // Candidate Form
+    document.getElementById('candidateForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('candidateName').value.trim();
+    const department = document.getElementById('candidateDepartment').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
 
-        // Load initial data
-        loadElectionState();
-        loadCandidates();
-        setInterval(loadElectionState, 3000);
+    setBtnLoading(submitBtn.id || 'regBtn', true);
+    showLoader('Gemini AI is generating a professional manifesto...');
 
-        // Candidate Form
-        document.getElementById('candidateForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('candidateName').value.trim();
-            const department = document.getElementById('candidateDepartment').value;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+    try {
+    const response = await fetch(`${API_URL}/admin/candidate/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_email: adminEmail, name, department })
+    });
 
-            setBtnLoading(submitBtn.id || 'regBtn', true);
-            showLoader('Gemini AI is generating a professional manifesto...');
+    const data = await response.json();
 
-            try {
-                const response = await fetch(`${API_URL}/admin/candidate/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: adminEmail, name, department })
-                });
+    if (data.success) {
+    confetti({
+    particleCount: 150,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#667eea', '#764ba2', '#4facfe']
+    });
+    alert('✅ Candidate registered with AI-generated manifesto!');
+    document.getElementById('candidateForm').reset();
+    loadCandidates();
+    } else {
+    alert('❌ ' + data.message);
+    }
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    } finally {
+    setBtnLoading(submitBtn.id || 'regBtn', false);
+    hideLoader();
+    }
+    });
 
-                const data = await response.json();
+    async function loadElectionState() {
+    try {
+    const response = await fetch(`${API_URL}/election/state`);
+    const data = await response.json();
 
-                if (data.success) {
-                    confetti({
-                        particleCount: 150,
-                        spread: 70,
-                        origin: { y: 0.6 },
-                        colors: ['#667eea', '#764ba2', '#4facfe']
-                    });
-                    alert('✅ Candidate registered with AI-generated manifesto!');
-                    document.getElementById('candidateForm').reset();
-                    loadCandidates();
-                } else {
-                    alert('❌ ' + data.message);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            } finally {
-                setBtnLoading(submitBtn.id || 'regBtn', false);
-                hideLoader();
-            }
-        });
+    if (data.success) {
+    const statusBadge = document.getElementById('electionStatus');
+    const state = data.state.toUpperCase();
 
-        async function loadElectionState() {
-            try {
-                const response = await fetch(`${API_URL}/election/state`);
-                const data = await response.json();
+    statusBadge.className = `status-badge status-${data.state}`;
+    statusBadge.textContent = `${state === 'WAITING' ? '⏸️' : state === 'LIVE' ? '🔴' : '🔒'} ${state}`;
 
-                if (data.success) {
-                    const statusBadge = document.getElementById('electionStatus');
-                    const state = data.state.toUpperCase();
+    document.getElementById('totalVotes').textContent = data.total_votes;
+    document.getElementById('chainLength').textContent = data.chain_length;
+    document.getElementById('chainValid').textContent = data.chain_valid ? '✓' : '✗';
+    document.getElementById('chainValid').style.color = data.chain_valid ? '#22c55e' : '#ef4444';
+    }
+    } catch (error) {
+    console.error('Error loading state:', error);
+    }
+    }
 
-                    statusBadge.className = `status-badge status-${data.state}`;
-                    statusBadge.textContent = `${state === 'WAITING' ? '⏸️' : state === 'LIVE' ? '🔴' : '🔒'} ${state}`;
+    async function loadCandidates() {
+    try {
+    const response = await fetch(`${API_URL}/admin/candidates?admin_email=${encodeURIComponent(adminEmail)}`);
+    const data = await response.json();
 
-                    document.getElementById('totalVotes').textContent = data.total_votes;
-                    document.getElementById('chainLength').textContent = data.chain_length;
-                    document.getElementById('chainValid').textContent = data.chain_valid ? '✓' : '✗';
-                    document.getElementById('chainValid').style.color = data.chain_valid ? '#22c55e' : '#ef4444';
-                }
-            } catch (error) {
-                console.error('Error loading state:', error);
-            }
-        }
+    const container = document.getElementById('candidatesList');
 
-        async function loadCandidates() {
-            try {
-                const response = await fetch(`${API_URL}/admin/candidates?admin_email=${encodeURIComponent(adminEmail)}`);
-                const data = await response.json();
+    if (data.success && data.candidates.length > 0) {
+    container.innerHTML = data.candidates.map(c => `
+    <div class="candidate-card">
+        <h3 class="candidate-name">${c.name}</h3>
+        <span class="candidate-department">${c.department}</span>
+        <p class="candidate-manifesto">"${c.manifesto}"</p>
+        <button class="btn btn-danger" onclick="removeCandidate('${c.id}')" style="width: 100%;">
+            🗑️ Remove
+        </button>
+    </div>
+    `).join('');
+    } else {
+    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No candidates registered yet</p>
+    ';
+    }
+    } catch (error) {
+    console.error('Error loading candidates:', error);
+    }
+    }
 
-                const container = document.getElementById('candidatesList');
+    async function startElection() {
+    if (!confirm('Start the election? Voters will be able to cast votes.')) return;
 
-                if (data.success && data.candidates.length > 0) {
-                    container.innerHTML = data.candidates.map(c => `
-                        <div class="candidate-card">
-                            <h3 class="candidate-name">${c.name}</h3>
-                            <span class="candidate-department">${c.department}</span>
-                            <p class="candidate-manifesto">"${c.manifesto}"</p>
-                            <button class="btn btn-danger" onclick="removeCandidate('${c.id}')" style="width: 100%;">
-                                🗑️ Remove
-                            </button>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No candidates registered yet</p>';
-                }
-            } catch (error) {
-                console.error('Error loading candidates:', error);
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/election/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_email: adminEmail })
+    });
 
-        async function startElection() {
-            if (!confirm('Start the election? Voters will be able to cast votes.')) return;
+    const data = await response.json();
+    alert(data.success ? '✅ Election started!' : '❌ ' + data.message);
+    loadElectionState();
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/election/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: adminEmail })
-                });
+    async function stopElection() {
+    if (!confirm('Stop the election and calculate results?')) return;
 
-                const data = await response.json();
-                alert(data.success ? '✅ Election started!' : '❌ ' + data.message);
-                loadElectionState();
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/election/stop`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_email: adminEmail })
+    });
 
-        async function stopElection() {
-            if (!confirm('Stop the election and calculate results?')) return;
+    const data = await response.json();
+    alert(data.success ? '✅ Election stopped! Results calculated.' : '❌ ' + data.message);
+    loadElectionState();
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/election/stop`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: adminEmail })
-                });
+    async function resetBlockchain() {
+    if (!confirm('⚠️ WARNING: This will wipe the entire blockchain and all data. Continue?')) return;
+    if (!confirm('This action cannot be undone. Are you absolutely sure?')) return;
 
-                const data = await response.json();
-                alert(data.success ? '✅ Election stopped! Results calculated.' : '❌ ' + data.message);
-                loadElectionState();
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/election/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_email: adminEmail })
+    });
 
-        async function resetBlockchain() {
-            if (!confirm('⚠️ WARNING: This will wipe the entire blockchain and all data. Continue?')) return;
-            if (!confirm('This action cannot be undone. Are you absolutely sure?')) return;
+    const data = await response.json();
+    alert(data.success ? '✅ Blockchain reset to genesis' : '❌ ' + data.message);
+    loadElectionState();
+    loadCandidates();
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/election/reset`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: adminEmail })
-                });
+    async function removeCandidate(candidateId) {
+    if (!confirm('Remove this candidate?')) return;
 
-                const data = await response.json();
-                alert(data.success ? '✅ Blockchain reset to genesis' : '❌ ' + data.message);
-                loadElectionState();
-                loadCandidates();
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/candidate/remove`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_email: adminEmail, candidate_id: candidateId })
+    });
 
-        async function removeCandidate(candidateId) {
-            if (!confirm('Remove this candidate?')) return;
+    const data = await response.json();
+    alert(data.success ? '✅ Candidate removed' : '❌ ' + data.message);
+    loadCandidates();
+    } catch (error) {
+    alert('❌ Error: ' + error.message);
+    }
+    }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/candidate/remove`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: adminEmail, candidate_id: candidateId })
-                });
+    async function viewAudit() {
+    document.getElementById('auditModal').classList.remove('hidden');
 
-                const data = await response.json();
-                alert(data.success ? '✅ Candidate removed' : '❌ ' + data.message);
-                loadCandidates();
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
+    try {
+    const response = await fetch(`${API_URL}/admin/audit?admin_email=${encodeURIComponent(adminEmail)}`);
+    const data = await response.json();
 
-        async function viewAudit() {
-            document.getElementById('auditModal').classList.remove('hidden');
+    const content = document.getElementById('auditContent');
 
-            try {
-                const response = await fetch(`${API_URL}/admin/audit?admin_email=${encodeURIComponent(adminEmail)}`);
-                const data = await response.json();
+    if (data.success) {
+    content.innerHTML = `
+    <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+        <h3 style="margin-bottom: 1rem;">🤖 AI Analysis</h3>
+        <p style="white-space: pre-wrap; line-height: 1.8;">${data.audit}</p>
+    </div>
+    <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md);">
+        <h3 style="margin-bottom: 1rem;">📊 Results Breakdown</h3>
+        ${Object.entries(data.results).map(([dept, result]) => `
+        <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <h4>${dept}</h4>
+            <p>Winner: ${result.winner?.name || 'No votes'}</p>
+            <p>Votes: ${result.winner?.votes || 0} / ${result.total_votes}</p>
+            <p>Margin: ${result.margin || 0}</p>
+        </div>
+        `).join('')}
+    </div>
+    `;
+    } else {
+    content.innerHTML = `<p style="color: var(--text-secondary);">${data.message}</p>`;
+    }
+    } catch (error) {
+    document.getElementById('auditContent').innerHTML = `<p style="color: #ef4444;">Error loading audit</p>`;
+    }
+    }
 
-                const content = document.getElementById('auditContent');
+    function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    }
 
-                if (data.success) {
-                    content.innerHTML = `
-                        <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-                            <h3 style="margin-bottom: 1rem;">🤖 AI Analysis</h3>
-                            <p style="white-space: pre-wrap; line-height: 1.8;">${data.audit}</p>
-                        </div>
-                        <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md);">
-                            <h3 style="margin-bottom: 1rem;">📊 Results Breakdown</h3>
-                            ${Object.entries(data.results).map(([dept, result]) => `
-                                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
-                                    <h4>${dept}</h4>
-                                    <p>Winner: ${result.winner?.name || 'No votes'}</p>
-                                    <p>Votes: ${result.winner?.votes || 0} / ${result.total_votes}</p>
-                                    <p>Margin: ${result.margin || 0}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                } else {
-                    content.innerHTML = `<p style="color: var(--text-secondary);">${data.message}</p>`;
-                }
-            } catch (error) {
-                document.getElementById('auditContent').innerHTML = `<p style="color: #ef4444;">Error loading audit</p>`;
-            }
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        function logout() {
-            localStorage.removeItem('adminEmail');
-            window.location.href = 'index.html';
-        }
+    function logout() {
+    localStorage.removeItem('adminEmail');
+    window.location.href = 'index.html';
+    }
     </script>
 </body>
 
