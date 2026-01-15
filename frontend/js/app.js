@@ -37,17 +37,12 @@ async function updateElectionStatus() {
 
         if (data.success) {
             const statusBadge = document.getElementById('electionStatus');
-            const state = data.state.toUpperCase();
-
-            statusBadge.className = `status-badge status-${data.state}`;
-
-            const icons = {
-                'waiting': '⏸️',
-                'live': '🔴',
-                'closed': '🔒'
-            };
-
-            statusBadge.textContent = `${icons[data.state] || ''} ${state}`;
+            if (statusBadge) {
+                const state = data.state.toUpperCase();
+                statusBadge.className = `status-badge status-${data.state}`;
+                const icons = { 'waiting': '⏸️', 'live': '🔴', 'closed': '🔒' };
+                statusBadge.textContent = `${icons[data.state] || ''} ${state}`;
+            }
         }
     } catch (error) {
         console.error('Error fetching election state:', error);
@@ -56,15 +51,11 @@ async function updateElectionStatus() {
 
 // Update status every 3 seconds
 setInterval(updateElectionStatus, 3000);
-updateElectionStatus();
+document.addEventListener('DOMContentLoaded', updateElectionStatus);
 
 // ============================================================================
 // ADMIN LOGIN
 // ============================================================================
-
-function showAdminLogin() {
-    showModal('adminLoginModal');
-}
 
 document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -77,20 +68,25 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
     try {
         const response = await fetch(`${window.CONFIG.API_URL}/admin/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            // Store admin session
-            localStorage.setItem('adminEmail', email);
+            localStorage.setItem('pendingAdminEmail', email);
+            window.closeModal('adminLoginModal');
 
-            // Redirect to admin dashboard
-            window.location.href = 'admin.html';
+            // Configure OTP Modal for Admin
+            const otpModal = document.getElementById('otpModal');
+            otpModal.querySelector('.modal-title').textContent = "🔐 Admin Verification";
+            // Reset modal text and message
+            const otpText = otpModal.querySelector('p');
+            otpText.textContent = data.message;
+            document.getElementById('otpForm').dataset.type = 'admin';
+
+            window.showModal('otpModal');
         } else {
             alert('❌ ' + data.message);
             if (submitBtn) submitBtn.disabled = false;
@@ -104,10 +100,6 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
 // ============================================================================
 // VOTER LOGIN
 // ============================================================================
-
-function showVoterLogin() {
-    showModal('voterLoginModal');
-}
 
 document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -135,24 +127,25 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
     try {
         const response = await fetch(`${window.CONFIG.API_URL}/voter/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, department })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            // Store voter session
             localStorage.setItem('voterEmail', email);
             localStorage.setItem('voterDepartment', department);
+            window.closeModal('voterLoginModal');
 
-            // Close login modal and show OTP modal
-            closeModal('voterLoginModal');
-            showModal('otpModal');
+            // Configure OTP Modal for Voter
+            const otpModal = document.getElementById('otpModal');
+            otpModal.querySelector('.modal-title').textContent = "📧 Enter OTP";
+            const otpText = otpModal.querySelector('p');
+            otpText.textContent = data.message;
+            document.getElementById('otpForm').dataset.type = 'voter';
 
-            // alert('✅ OTP sent to your email! Check your inbox.'); // REMOVED per user request
+            window.showModal('otpModal');
         } else {
             alert('❌ ' + data.message);
             if (submitBtn) submitBtn.disabled = false;
@@ -164,38 +157,51 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
 });
 
 // ============================================================================
-// OTP VERIFICATION
+// OTP VERIFICATION (Unified Flow)
 // ============================================================================
 
 document.getElementById('otpForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const email = localStorage.getItem('voterEmail');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
     const otp = document.getElementById('otpCode').value.trim();
+    const type = e.target.dataset.type; // 'admin' or 'voter'
 
     if (!otp || otp.length !== 6) {
         alert('❌ Please enter a valid 6-digit OTP');
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
+    const endpoint = type === 'admin' ? '/admin/verify-otp' : '/voter/verify-otp';
+    const emailKey = type === 'admin' ? 'pendingAdminEmail' : 'voterEmail';
+    const email = localStorage.getItem(emailKey);
+
     try {
-        const response = await fetch(`${window.CONFIG.API_URL}/voter/verify-otp`, {
+        const response = await fetch(`${window.CONFIG.API_URL}${endpoint}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            // Redirect to voter page
-            window.location.href = 'voter.html';
+            if (type === 'admin') {
+                localStorage.setItem('adminEmail', email);
+                localStorage.removeItem('pendingAdminEmail');
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'voter.html';
+            }
         } else {
             alert('❌ ' + data.message);
+            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
+        if (submitBtn) submitBtn.disabled = false;
     }
 });
