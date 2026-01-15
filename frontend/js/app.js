@@ -61,6 +61,9 @@ function showAdminLogin() {
 document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
     const email = document.getElementById('adminEmail').value.trim();
 
     try {
@@ -82,9 +85,11 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
             window.location.href = 'admin.html';
         } else {
             alert('❌ ' + data.message);
+            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
+        if (submitBtn) submitBtn.disabled = false;
     }
 });
 
@@ -99,11 +104,15 @@ function showVoterLogin() {
 document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
     const email = document.getElementById('voterEmail').value.trim().toLowerCase();
     const department = document.getElementById('voterDepartment').value;
 
     if (!email || !department) {
         alert('❌ Please fill in all fields');
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
@@ -111,6 +120,7 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
     const vitEmailPattern = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+@vit\.edu$/;
     if (!vitEmailPattern.test(email)) {
         alert('❌ Invalid VIT email format. Use: name.prn@vit.edu');
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
@@ -137,9 +147,11 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
             alert('✅ OTP sent to your email! Check your inbox.');
         } else {
             alert('❌ ' + data.message);
+            if (submitBtn) submitBtn.disabled = false;
         }
     } catch (error) {
         alert('❌ Error: ' + error.message);
+        if (submitBtn) submitBtn.disabled = false;
     }
 });
 
