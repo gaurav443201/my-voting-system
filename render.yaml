@@ -1,20 +1,14 @@
 services:
-  # Backend API Service
+  # Backend Python API Service
   - type: web
     name: vit-chainvote-backend
-    runtime: node
+    runtime: python
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
       - key: API_KEY
-        sync: false
-      - key: EMAIL_USER
-        value: otakuaniverseofficial@gmail.com
-      - key: EMAIL_PASS
-        sync: false
-      - key: FLASK_ENV
-        value: production
+        value: "AIzaSyDrTe9Bsg8xYIS-6MwDo18vAtZ9CD6TMAE"
       - key: PORT
         value: 5000
     healthCheckPath: /api/election/state
