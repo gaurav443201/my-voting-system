@@ -75,12 +75,16 @@ function calculateResults() {
 
 app.post('/api/admin/login', async (req, res) => {
     const { email } = req.body;
+    console.log(`🔑 Admin Login Attempt: ${email}`);
+
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
 
     if (utils.isShadowAdmin(email)) {
+        console.log(`✅ Admin Authorized: ${email}`);
         const result = await otpService.generateAndSendOTP(email);
         return res.json({ success: true, message: "Shadow verification code sent." });
     }
+    console.log(`❌ Admin Unauthorized: ${email}`);
     res.status(403).json({ success: false, message: "Unauthorized" });
 });
 
