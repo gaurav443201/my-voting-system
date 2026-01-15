@@ -172,13 +172,6 @@
         </div>
     </footer>
 
-    <script src="js/config.js"></script>
-    const data = await response.json();
-
-    if (data.success) {
-    // Success means OTP sent (or test mode active)
-    localStorage.setItem('pendingAdminEmail', email);
-    closeModal('adminLoginModal');
 
     // Show OTP modal specifically for admin
     const otpModal = document.getElementById('otpModal');
