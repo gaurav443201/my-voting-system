@@ -144,7 +144,7 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
             closeModal('voterLoginModal');
             showModal('otpModal');
 
-            alert('✅ OTP sent to your email! Check your inbox.');
+            // alert('✅ OTP sent to your email! Check your inbox.'); // REMOVED per user request
         } else {
             alert('❌ ' + data.message);
             if (submitBtn) submitBtn.disabled = false;
