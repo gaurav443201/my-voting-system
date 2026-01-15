@@ -45,7 +45,6 @@ async function updateElectionStatus() {
             }
         }
     } catch (error) {
-    } catch (error) {
         console.error('Error fetching election state:', error);
         const statusBadge = document.getElementById('electionStatus');
         if (statusBadge && statusBadge.textContent.includes('Loading')) {
