@@ -7,15 +7,23 @@
 // No need to declare it again - config.js already sets window.CONFIG.API_URL
 
 // ============================================================================
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS (Global Scope)
 // ============================================================================
 
-function closeModal(modalId) {
+window.closeModal = function (modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
-function showModal(modalId) {
+window.showModal = function (modalId) {
     document.getElementById(modalId).classList.remove('hidden');
+}
+
+window.showAdminLogin = function () {
+    window.showModal('adminLoginModal');
+}
+
+window.showVoterLogin = function () {
+    window.showModal('voterLoginModal');
 }
 
 // ============================================================================
