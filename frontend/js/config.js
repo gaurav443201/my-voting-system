@@ -11,7 +11,7 @@ const isLocalhost = window.location.hostname === 'localhost' ||
 // Set API URL based on environment
 const app_api_url = isLocalhost
     ? 'http://localhost:5000/api'  // Local development
-    : 'https://voteapp-7eeh.onrender.com/api';  // Production (update after deployment)
+    : 'https://my-voting-system-e9km.onrender.com/api';  // Production (update after deployment)
 
 // Export for use in other files
 window.CONFIG = {
