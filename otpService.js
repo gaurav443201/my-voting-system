@@ -11,14 +11,11 @@ class OTPService {
 
         this.transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 587,
-            secure: false, // Use STARTTLS
+            port: 465,
+            secure: true, // Use SSL
             auth: {
                 user: this.senderEmail,
                 pass: this.appPassword
-            },
-            tls: {
-                rejectUnauthorized: false // Helps in cloud environments
             }
         });
     }
