@@ -38,7 +38,7 @@ class OTPService:
             return True
         return False
     
-    def send_otp_email(self, recipient_email: str, otp: str) -> None:
+    def send_otp_email(self, recipient_email: str, otp: str) -> bool:
         msg = EmailMessage()
         msg["Subject"] = "Your OTP Code - VIT-ChainVote"
         msg["From"] = self.sender_email
@@ -47,12 +47,14 @@ class OTPService:
 
         try:
             # Using port 465 with SSL as requested by user
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15.0) as server:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10.0) as server:
                 server.login(self.sender_email, self.app_password)
                 server.send_message(msg)
             print(f"✅ OTP SENT successfully to {recipient_email}")
+            return True
         except Exception as e:
             print(f"❌ SMTP Error (Port 465 SSL): {str(e)}")
+            return False
             
     def generate_and_send_otp(self, email: str) -> Tuple[bool, str]:
         otp = self.generate_otp()
@@ -62,9 +64,10 @@ class OTPService:
         print(f"🔐 NEW OTP GENERATED: [ {otp} ] for {email}")
         print(f"-----------------------------------------------")
         
-        # Dispatch email sending to a background thread
-        thread = threading.Thread(target=self.send_otp_email, args=(email, otp))
-        thread.daemon = True
-        thread.start()
+        # Send Synchronously (Blocking) to ensure delivery
+        success = self.send_otp_email(email, otp)
         
-        return True, "OTP sent successfully"
+        if success:
+            return True, "OTP sent successfully"
+        else:
+            return False, "Failed to send email. Check server logs."
