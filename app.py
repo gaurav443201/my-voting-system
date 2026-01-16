@@ -338,9 +338,13 @@ def get_state():
 
 @app.route('/api/results', methods=['GET'])
 def get_results():
-    if election_manager.get_state() != "closed":
-        return jsonify({"success": False, "message": "Not closed"}), 403
-    return jsonify({"success": True, "results": election_manager.get_results()})
+    results = calculate_results()
+    return jsonify({
+        "success": True, 
+        "results": results,
+        "title": election_manager.get_title(),
+        "chain_valid": blockchain.is_chain_valid()
+    })
 
 if __name__ == '__main__':
     import os
