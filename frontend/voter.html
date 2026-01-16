@@ -12,8 +12,14 @@
     <style>
         @keyframes success-pop {
             0% {
-                transform: scale(0.5);
+                transform: scale(0.3);
                 opacity: 0;
+                filter: blur(5px);
+            }
+
+            60% {
+                transform: scale(1.1);
+                filter: blur(0);
             }
 
             100% {
@@ -22,9 +28,13 @@
             }
         }
 
-        @keyframes slide-up {
+        @keyframes slide-up-fade {
             0% {
-                transform: translateY(20px);
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            40% {
                 opacity: 0;
             }
 
@@ -32,6 +42,40 @@
                 transform: translateY(0);
                 opacity: 1;
             }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .success-icon {
+            font-size: 7rem;
+            margin-bottom: 1.5rem;
+            animation:
+                success-pop 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                float 3s ease-in-out infinite alternate 1.2s;
+            display: inline-block;
+        }
+
+        .success-text {
+            color: #22c55e;
+            font-size: 3.8rem;
+            margin-bottom: 0.5rem;
+            animation: slide-up-fade 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            font-weight: 800;
+        }
+
+        .success-subtext {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            animation: slide-up-fade 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
     </style>
 </head>
@@ -86,14 +130,9 @@
         <!-- Vote Confirmation -->
         <section id="voteConfirmation" class="section hidden">
             <div class="glass-card text-center">
-                <div
-                    style="font-size: 6rem; margin-bottom: 1.5rem; animation: success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                    ✅</div>
-                <h1
-                    style="color: #22c55e; font-size: 3.5rem; margin-bottom: 0.5rem; animation: slide-up 0.5s ease-out;">
-                    Vote Successfully!</h1>
-                <p style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">Your voice has been
-                    cryptographically secured.</p>
+                <div class="success-icon">✅</div>
+                <h1 class="success-text">Vote Successfully!</h1>
+                <p class="success-subtext">Your voice has been cryptographically secured.</p>
                 <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                     Your vote has been mined into the blockchain
                 </p>
