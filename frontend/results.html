@@ -7,171 +7,135 @@
     <meta name="description" content="VIT-ChainVote Election Results">
     <title>📊 Results | VIT-ChainVote</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .winner-card {
+            background: rgba(102, 126, 234, 0.1) !important;
+            border: 1px solid var(--primary-color) !important;
+        }
+
+        .vote-count {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-content">
-            <div class="logo" id="navLogo">
-                🗳️ Election Results
-            </div>
+            <div class="logo" id="navLogo">🗳️ VIT-ChainVote</div>
             <div class="nav-links">
-                <button class="btn btn-outline" onclick="window.location.href='index.html'">
-                    🏠 Home
-                </button>
+                <button class="btn btn-outline" onclick="window.location.href='index.html'">🏠 Home</button>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Results Not Available -->
-        <section id="notAvailable" class="section">
-            <div class="glass-card text-center">
-                <div style="font-size: 5rem; margin-bottom: 2rem;">⏳</div>
-                <h2>Results Not Available Yet</h2>
-                <p style="font-size: 1.1rem; color: var(--text-secondary); margin: 2rem 0;">
-                    The voting phase of the election is still active.<br>
-                    <strong>Shadow Admins:</strong> Close the election from the dashboard to publish results.
-                </p>
-                <button id="returnHomeBtn" class="btn btn-primary" onclick="window.location.href='index.html'">
-                    Return to Home
-                </button>
+        <h1 id="resultsElectionTitle" style="text-align: center; margin: 2rem 0; color: var(--primary-color);">Election
+            Results</h1>
+
+        <div id="departmentResults">
+            <div class="glass-card text-center" style="padding: 3rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem; animation: spin 2s linear infinite;">⌛</div>
+                <p>Loading election data from blockchain...</p>
             </div>
-        </section>
-
-        <!-- Dynamic Election Title for Results -->
-        <h1 id="resultsElectionTitle" style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">
-        </h1>
-
-        <!-- Results Display -->
-        <div id="departmentResults"></div>
+        </div>
     </div>
 
     <script src="js/config.js?v=4"></script>
     <script>
         const API_URL = window.CONFIG.API_URL;
 
-        loadResults();
-        loadElectionState(); // Combined check for title
+        async function init() {
+            await Promise.all([loadTitle(), loadResults()]);
+        }
 
-        async function loadElectionState() {
+        async function loadTitle() {
             try {
-                const response = await fetch(`${API_URL}/election/state`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}/election/state`);
+                const data = await res.json();
                 if (data.success && data.title) {
-                    const navLogo = document.getElementById('navLogo');
-                    if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
-
-                    const titleEl = document.getElementById('resultsElectionTitle');
-                    if (titleEl) titleEl.textContent = `${data.title} Results`;
-
-                    document.title = `📊 Results | ${data.title}`;
+                    document.getElementById('resultsElectionTitle').textContent = data.title + " Results";
+                    document.title = "📊 Results | " + data.title;
                 }
-            } catch (e) {
-                console.error("Error loading title:", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         async function loadResults() {
             try {
-                const response = await fetch(`${API_URL}/results`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}/results`);
+                const data = await res.json();
+                const container = document.getElementById('departmentResults');
 
-                if (data.success) {
-                    // Show results and hide "not available" screen
-                    const notAvailableEl = document.getElementById('notAvailable');
-                    if (notAvailableEl) notAvailableEl.classList.add('hidden');
+                if (!data.success || !data.results) {
+                    container.innerHTML = `
+                        <div class="glass-card text-center" style="padding: 3rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1.5rem;">⏳</div>
+                            <h2>Results Not Available Yet</h2>
+                            <p style="color: var(--text-secondary); margin: 1.5rem 0;">
+                                The election is still active. Results will appear here automatically.<br>
+                                <strong>Shadow Admins:</strong> Close the election to finalize counts.
+                            </p>
+                            <button class="btn btn-primary" onclick="window.location.reload()">🔄 Refresh Results</button>
+                        </div>`;
+                    return;
+                }
 
-                    const titleEl = document.getElementById('resultsElectionTitle');
-                    if (titleEl && data.title) titleEl.textContent = `${data.title} Results`;
+                const departments = ['CSE', 'IT', 'ENTC', 'MECH'];
+                container.innerHTML = departments.map(dept => {
+                    const result = data.results[dept];
+                    const deptName = {
+                        'CSE': 'Computer Science & Engineering',
+                        'IT': 'Information Technology',
+                        'ENTC': 'Electronics & Telecommunication',
+                        'MECH': 'Mechanical Engineering'
+                    }[dept] || dept;
 
-                    // Chain status
-                    const chainStatus = document.getElementById('chainStatus');
-                    if (data.chain_valid) {
-                        chainStatus.innerHTML = `
-                            <div style="font-size: 3rem; color: #22c55e; margin-bottom: 0.5rem;">✓</div>
-                            <p style="color: var(--text-secondary);">All blocks verified - No tampering detected</p>
-                        `;
-                    } else {
-                        chainStatus.innerHTML = `
-                            <div style="font-size: 3rem; color: #ef4444; margin-bottom: 0.5rem;">✗</div>
-                            <p style="color: #ef4444;">Chain integrity compromised!</p>
-                        `;
-                    }
-
-                    // Department results
-                    const resultsContainer = document.getElementById('departmentResults');
-                    const departments = ['CSE', 'IT', 'ENTC', 'MECH'];
-
-                    resultsContainer.innerHTML = departments.map(dept => {
-                        const result = data.results[dept];
-
-                        if (!result || !result.winner) {
-                            return `
-                                <div class="glass-card" style="margin-bottom: 2rem;">
-                                    <h2 style="color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                                        ${getDepartmentName(dept)}
-                                    </h2>
-                                    <p style="text-align: center; padding: 1rem; color: var(--text-muted);">
-                                        No votes yet
-                                    </p>
-                                </div>
-                            `;
-                        }
-
+                    if (!result || !result.full_breakdown || result.full_breakdown.length === 0) {
                         return `
                             <div class="glass-card" style="margin-bottom: 2rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                                    <h2 style="margin:0;">${getDepartmentName(dept)}</h2>
-                                    <span class="status-badge status-live">${dept}</span>
-                                </div>
-                                
-                                <div style="display: grid; gap: 1rem;">
-                                    ${result.full_breakdown.map((cand, idx) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: ${idx === 0 ? 'rgba(102, 126, 234, 0.1)' : 'var(--bg-card)'}; border-radius: var(--radius-md); border: 1px solid ${idx === 0 ? 'var(--primary-color)' : 'var(--border-color)'}">
-                                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                                <div style="font-size: 1.25rem;">${idx === 0 ? '🏆' : '👤'}</div>
-                                                <div>
-                                                    <div style="font-weight: bold; font-size: 1.1rem;">${cand.name}</div>
-                                                    ${idx === 0 ? '<div style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold;">WINNER</div>' : ''}
-                                                </div>
-                                            </div>
-                                            <div style="text-align: right;">
-                                                <div style="font-size: 1.25rem; font-weight: bold; color: ${idx === 0 ? 'var(--primary-color)' : 'var(--text-main)'}">
-                                                    ${cand.votes}
-                                                </div>
-                                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Votes</div>
+                                <h2 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">${deptName}</h2>
+                                <p style="text-align: center; color: var(--text-muted); padding: 1rem;">No votes recorded for this department.</p>
+                            </div>`;
+                    }
+
+                    return `
+                        <div class="glass-card" style="margin-bottom: 2rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                                <h2 style="margin:0;">${deptName}</h2>
+                                <span class="status-badge status-live">${dept}</span>
+                            </div>
+                            <div style="display: grid; gap: 1rem;">
+                                ${result.full_breakdown.map((cand, idx) => `
+                                    <div class="glass-card ${idx === 0 ? 'winner-card' : ''}" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin:0;">
+                                        <div style="display: flex; align-items: center; gap: 1rem;">
+                                            <div style="font-size: 1.5rem;">${idx === 0 ? '🏆' : '👤'}</div>
+                                            <div>
+                                                <div style="font-weight: bold; font-size: 1.1rem;">${cand.name}</div>
+                                                ${idx === 0 ? '<div style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold; letter-spacing: 1px;">WINNER</div>' : ''}
                                             </div>
                                         </div>
-                                    `).join('')}
-                                </div>
-
-                                <div style="margin-top: 1.5rem; text-align: right; font-size: 0.875rem; color: var(--text-secondary);">
-                                    Total Votes: <strong>${result.total_votes}</strong>
-                                </div>
+                                        <div style="text-align: right;">
+                                            <div class="vote-count">${cand.votes}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Votes</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
-                        `;
-                    }).join('');
+                            <div style="margin-top: 1.5rem; text-align: right; font-size: 0.875rem; color: var(--text-secondary);">
+                                Total Department Votes: <strong>${result.total_votes}</strong>
+                            </div>
+                        </div>`;
+                }).join('');
 
-                    if (data.success) {
-                        // Show results and hide "not available" screen
-                        const notAvailableEl = document.getElementById('notAvailable');
-                        if (notAvailableEl) notAvailableEl.classList.add('hidden');
+            } catch (error) {
+                console.error(error);
+                document.getElementById('departmentResults').innerHTML = '<div class="glass-card text-center"><h2>Error connecting to blockchain</h2><p>Please try again in a few seconds.</p></div>';
+            }
+        }
 
-                        // Department results
-                        const resultsContainer = document.getElementById('departmentResults');
-                    }
-
-                    function getDepartmentName(code) {
-                        const names = {
-                            'CSE': 'Computer Science & Engineering',
-                            'IT': 'Information Technology',
-                            'ENTC': 'Electronics & Telecommunication',
-                            'MECH': 'Mechanical Engineering'
-                        };
-                        return names[code] || code;
-                    }
+        init();
     </script>
 </body>
 
