@@ -79,9 +79,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Show results
-                    document.getElementById('notAvailable').classList.add('hidden');
-                    // Removed resultsDisplay reference since it was simplified
+                    // Show results and hide "not available" screen
+                    const notAvailableEl = document.getElementById('notAvailable');
+                    if (notAvailableEl) notAvailableEl.classList.add('hidden');
+
+                    const titleEl = document.getElementById('resultsElectionTitle');
+                    if (titleEl && data.title) titleEl.textContent = `${data.title} Results`;
 
                     // Chain status
                     const chainStatus = document.getElementById('chainStatus');
@@ -151,27 +154,24 @@
                         `;
                     }).join('');
 
-                } else {
-                    // Results not available
-                    document.getElementById('notAvailable').classList.remove('hidden');
-                    document.getElementById('resultsDisplay').classList.add('hidden');
-                }
-            } catch (error) {
-                console.error('Error loading results:', error);
-                document.getElementById('notAvailable').classList.remove('hidden');
-                document.getElementById('resultsDisplay').classList.add('hidden');
-            }
-        }
+                    if (data.success) {
+                        // Show results and hide "not available" screen
+                        const notAvailableEl = document.getElementById('notAvailable');
+                        if (notAvailableEl) notAvailableEl.classList.add('hidden');
 
-        function getDepartmentName(code) {
-            const names = {
-                'CSE': 'Computer Science & Engineering',
-                'IT': 'Information Technology',
-                'ENTC': 'Electronics & Telecommunication',
-                'MECH': 'Mechanical Engineering'
-            };
-            return names[code] || code;
-        }
+                        // Department results
+                        const resultsContainer = document.getElementById('departmentResults');
+                    }
+
+                    function getDepartmentName(code) {
+                        const names = {
+                            'CSE': 'Computer Science & Engineering',
+                            'IT': 'Information Technology',
+                            'ENTC': 'Electronics & Telecommunication',
+                            'MECH': 'Mechanical Engineering'
+                        };
+                        return names[code] || code;
+                    }
     </script>
 </body>
 
