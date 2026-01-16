@@ -57,7 +57,10 @@ async function updateElectionStatus() {
 
                 if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
                 if (mainTitle) mainTitle.textContent = data.title;
-                if (pageTitle) pageTitle.textContent = `🗳️ ${data.title}`;
+                if (pageTitle) pageTitle.textContent = `⚡ ${data.title}`;
+
+                const avTitle = document.getElementById('alreadyVotedTitle');
+                if (avTitle) avTitle.textContent = `Participated in ${data.title}`;
             }
 
             const statusBadge = document.getElementById('electionStatus');

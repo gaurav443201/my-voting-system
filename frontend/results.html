@@ -30,9 +30,9 @@
             <div class="glass-card text-center">
                 <div style="font-size: 5rem; margin-bottom: 2rem;">⏳</div>
                 <h2>Results Not Available Yet</h2>
-                <p style="font-size: 1.25rem; color: var(--text-secondary); margin: 2rem 0;">
-                    The election is still in progress or has not started.<br>
-                    Results will be available once the Shadows close the election.
+                <p style="font-size: 1.1rem; color: var(--text-secondary); margin: 2rem 0;">
+                    The voting phase of the election is still active.<br>
+                    <strong>Shadow Admins:</strong> Close the election from the dashboard to publish results.
                 </p>
                 <button class="btn btn-primary" onclick="window.location.href='index.html'">
                     Return to Home
@@ -58,7 +58,7 @@
                 if (data.success && data.title) {
                     const navLogo = document.getElementById('navLogo');
                     if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
-                    // If we want to show the current election in Results somewhere else, let's add an ID for it
+                    document.title = `📊 Results | ${data.title}`;
                 }
             } catch (e) {
                 console.error("Error loading title:", e);
