@@ -14,7 +14,7 @@
     <nav class="navbar">
         <div class="navbar-content">
             <div class="logo" id="navLogo">
-                📊 Election Results
+                🗳️ Election Results
             </div>
             <div class="nav-links">
                 <button class="btn btn-outline" onclick="window.location.href='index.html'">
@@ -41,16 +41,7 @@
         </section>
 
         <!-- Results Display -->
-        <section id="resultsDisplay" class="section hidden">
-            <!-- Blockchain Integrity -->
-            <div class="glass-card text-center" style="margin-bottom: 2rem;">
-                <h3 style="margin-bottom: 1rem;">⛓️ Blockchain Integrity</h3>
-                <div id="chainStatus"></div>
-            </div>
-
-            <!-- Department Results -->
-            <div id="departmentResults"></div>
-        </section>
+        <div id="departmentResults"></div>
     </div>
 
     <script src="js/config.js?v=4"></script>
@@ -107,9 +98,11 @@
                         if (!result || !result.winner) {
                             return `
                                 <div class="glass-card" style="margin-bottom: 2rem;">
-                                    <h2>${getDepartmentName(dept)}</h2>
-                                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
-                                        No votes recorded for this department
+                                    <h2 style="color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                                        ${getDepartmentName(dept)}
+                                    </h2>
+                                    <p style="text-align: center; padding: 1rem; color: var(--text-muted);">
+                                        No votes yet
                                     </p>
                                 </div>
                             `;
@@ -117,34 +110,33 @@
 
                         return `
                             <div class="glass-card" style="margin-bottom: 2rem;">
-                                <div class="card-header">
-                                    <h2>${getDepartmentName(dept)}</h2>
-                                    <span class="candidate-department">${dept}</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                                    <h2 style="margin:0;">${getDepartmentName(dept)}</h2>
+                                    <span class="status-badge status-live">${dept}</span>
                                 </div>
                                 
-                                <div style="text-align: center; padding: 2rem; background: var(--bg-card); border-radius: var(--radius-md); margin-bottom: 1.5rem;">
-                                    <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                                        🏆 WINNER
-                                    </div>
-                                    <h1 style="font-size: 3rem; margin-bottom: 1rem;">${result.winner.name}</h1>
-                                    <div style="font-size: 2rem; font-weight: bold; color: #667eea;">
-                                        ${result.winner.votes} ${result.winner.votes === 1 ? 'Vote' : 'Votes'}
-                                    </div>
+                                <div style="display: grid; gap: 1rem;">
+                                    ${result.full_breakdown.map((cand, idx) => `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: ${idx === 0 ? 'rgba(102, 126, 234, 0.1)' : 'var(--bg-card)'}; border-radius: var(--radius-md); border: 1px solid ${idx === 0 ? 'var(--primary-color)' : 'var(--border-color)'}">
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <div style="font-size: 1.25rem;">${idx === 0 ? '🏆' : '👤'}</div>
+                                                <div>
+                                                    <div style="font-weight: bold; font-size: 1.1rem;">${cand.name}</div>
+                                                    ${idx === 0 ? '<div style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold;">WINNER</div>' : ''}
+                                                </div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="font-size: 1.25rem; font-weight: bold; color: ${idx === 0 ? 'var(--primary-color)' : 'var(--text-main)'}">
+                                                    ${cand.votes}
+                                                </div>
+                                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Votes</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; text-align: center;">
-                                    <div>
-                                        <div style="font-size: 1.5rem; font-weight: bold; color: #4facfe;">${result.total_votes}</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.875rem;">Total Votes</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">${result.margin}</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.875rem;">Victory Margin</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 1.5rem; font-weight: bold; color: #f5576c;">${Object.keys(result.vote_breakdown).length}</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.875rem;">Candidates</div>
-                                    </div>
+
+                                <div style="margin-top: 1.5rem; text-align: right; font-size: 0.875rem; color: var(--text-secondary);">
+                                    Total Votes: <strong>${result.total_votes}</strong>
                                 </div>
                             </div>
                         `;

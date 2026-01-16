@@ -76,6 +76,16 @@ def calculate_results():
         sorted_counts = sorted(vote_count.values(), reverse=True)
         margin = sorted_counts[0] - sorted_counts[1] if len(sorted_counts) > 1 else sorted_counts[0]
 
+        full_breakdown = []
+        for cid, count in vote_count.items():
+            cand = candidate_registry.get_candidate(cid)
+            full_breakdown.append({
+                "id": cid,
+                "name": cand.name if cand else "Unknown",
+                "votes": count
+            })
+        full_breakdown.sort(key=lambda x: x['votes'], reverse=True)
+
         results[dept] = {
             "winner": {
                 "id": winner_id,
@@ -83,8 +93,7 @@ def calculate_results():
                 "votes": vote_count[winner_id]
             },
             "total_votes": len(votes),
-            "margin": margin,
-            "vote_breakdown": vote_count
+            "full_breakdown": full_breakdown
         }
     return results
 
