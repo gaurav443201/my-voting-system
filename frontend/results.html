@@ -34,11 +34,15 @@
                     The voting phase of the election is still active.<br>
                     <strong>Shadow Admins:</strong> Close the election from the dashboard to publish results.
                 </p>
-                <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                <button id="returnHomeBtn" class="btn btn-primary" onclick="window.location.href='index.html'">
                     Return to Home
                 </button>
             </div>
         </section>
+
+        <!-- Dynamic Election Title for Results -->
+        <h1 id="resultsElectionTitle" style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">
+        </h1>
 
         <!-- Results Display -->
         <div id="departmentResults"></div>
@@ -58,6 +62,10 @@
                 if (data.success && data.title) {
                     const navLogo = document.getElementById('navLogo');
                     if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
+
+                    const titleEl = document.getElementById('resultsElectionTitle');
+                    if (titleEl) titleEl.textContent = `${data.title} Results`;
+
                     document.title = `📊 Results | ${data.title}`;
                 }
             } catch (e) {

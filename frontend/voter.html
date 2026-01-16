@@ -9,6 +9,31 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @keyframes success-pop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slide-up {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -61,9 +86,14 @@
         <!-- Vote Confirmation -->
         <section id="voteConfirmation" class="section hidden">
             <div class="glass-card text-center">
-                <div style="font-size: 5rem; margin-bottom: 2rem; animation: bounce 1s infinite;">✅</div>
-                <h1 style="color: #22c55e; font-size: 2.5rem; margin-bottom: 1rem;">Vote Successfully!</h1>
-                <p style="font-size: 1.25rem; margin-bottom: 2rem;">Your voice has been heard.</p>
+                <div
+                    style="font-size: 6rem; margin-bottom: 1.5rem; animation: success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                    ✅</div>
+                <h1
+                    style="color: #22c55e; font-size: 3.5rem; margin-bottom: 0.5rem; animation: slide-up 0.5s ease-out;">
+                    Vote Successfully!</h1>
+                <p style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">Your voice has been
+                    cryptographically secured.</p>
                 <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                     Your vote has been mined into the blockchain
                 </p>
