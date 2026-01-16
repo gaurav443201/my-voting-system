@@ -108,6 +108,12 @@ window.loadElectionState = async function () {
                 statusBadge.textContent = `${state === 'WAITING' ? '⏸️' : state === 'LIVE' ? '🔴' : '🔒'} ${state}`;
             }
 
+            // Update Title
+            const titleEl = document.getElementById('electionTitleDisplay');
+            if (titleEl && data.title) {
+                titleEl.textContent = data.title;
+            }
+
             const totalVotes = document.getElementById('totalVotes');
             if (totalVotes) totalVotes.textContent = data.total_votes;
 
@@ -212,6 +218,29 @@ window.resetBlockchain = async function () {
         if (data.success) {
             loadElectionState();
             loadCandidates();
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+};
+
+window.editTitle = async function () {
+    const newTitle = prompt("Enter new Election Title:", "Class Representative Election 2026");
+    if (!newTitle) return;
+
+    try {
+        const response = await fetch(`${API_URL}/admin/election/title`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_email: adminEmail, title: newTitle })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            loadElectionState();
+            alert('✅ Title Updated');
         } else {
             alert('❌ ' + data.message);
         }

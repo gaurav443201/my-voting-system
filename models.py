@@ -61,7 +61,12 @@ class VoterBlacklist:
 class ElectionManager:
     def __init__(self):
         self.state = "waiting" # waiting, live, closed
+        self.title = "VIT-ChainVote"
         self.results = None
+
+    def set_title(self, title):
+        self.title = title
+        return True
 
     def start_election(self):
         self.state = "live"
@@ -81,6 +86,9 @@ class ElectionManager:
 
     def get_state(self):
         return self.state
+        
+    def get_title(self):
+        return self.title
 
     def get_results(self):
         return self.results

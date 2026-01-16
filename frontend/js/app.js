@@ -36,6 +36,17 @@ async function updateElectionStatus() {
         const data = await response.json();
 
         if (data.success) {
+            // Update Title Display
+            if (data.title) {
+                const navLogo = document.getElementById('navLogo');
+                const mainTitle = document.getElementById('mainTitle');
+                const pageTitle = document.getElementById('pageTitle');
+
+                if (navLogo) navLogo.textContent = `🗳️ ${data.title}`;
+                if (mainTitle) mainTitle.textContent = data.title;
+                if (pageTitle) pageTitle.textContent = `🗳️ ${data.title}`;
+            }
+
             const statusBadge = document.getElementById('electionStatus');
             if (statusBadge) {
                 const state = data.state.toUpperCase();

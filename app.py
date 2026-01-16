@@ -195,6 +195,20 @@ def reset_system():
         return jsonify({"success": True, "message": "System Reset"})
     return jsonify({"success": False, "message": "Unauthorized"}), 403
 
+@app.route('/api/admin/election/title', methods=['POST'])
+def set_election_title():
+    data = request.json
+    admin_email = data.get('admin_email')
+    new_title = data.get('title')
+    
+    if utils.is_shadow_admin(admin_email):
+        safe_title = utils.sanitize_input(new_title)
+        if safe_title:
+            election_manager.set_title(safe_title)
+            return jsonify({"success": True, "message": "Title updated", "title": safe_title})
+        return jsonify({"success": False, "message": "Invalid title"}), 400
+    return jsonify({"success": False, "message": "Unauthorized"}), 403
+
 # Voter Routes
 @app.route('/api/voter/login', methods=['POST'])
 def voter_login():
@@ -291,6 +305,7 @@ def get_state():
     return jsonify({
         "success": True,
         "state": election_manager.get_state(),
+        "title": election_manager.get_title(),
         "total_votes": voter_blacklist.get_count(),
         "chain_length": len(blockchain.chain),
         "chain_valid": blockchain.is_chain_valid(),

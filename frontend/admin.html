@@ -35,8 +35,13 @@
         <section class="section">
             <div class="glass-card">
                 <div class="card-header">
-                    <h2>⚙️ Election Control</h2>
-                    <div id="adminEmail" style="color: var(--text-secondary);"></div>
+                    <div>
+                        <h2 id="electionTitleDisplay">VIT-ChainVote</h2>
+                        <div id="adminEmail" style="color: var(--text-secondary);"></div>
+                    </div>
+                    <button class="btn btn-outline" onclick="editTitle()" title="Edit Title">
+                        ✏️ Edit Title
+                    </button>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
