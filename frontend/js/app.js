@@ -14,8 +14,21 @@ window.closeModal = function (modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
-window.showModal = function (modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+// Utility
+window.toggleCustomTitle = function (val) {
+    const group = document.getElementById('customTitleGroup');
+    if (group) {
+        if (val === 'CUSTOM') {
+            group.classList.remove('hidden');
+            document.getElementById('adminCustomTitle').focus();
+        } else {
+            group.classList.add('hidden');
+        }
+    }
+};
+
+window.showModal = function (id) {
+    document.getElementById(id).classList.remove('hidden');
 }
 
 window.showAdminLogin = function () {
@@ -109,12 +122,25 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
     showGlobalLoader('Authenticating Shadow Admin...');
 
     const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+    const type = document.getElementById('adminElectionType').value;
+    const custom = document.getElementById('adminCustomTitle').value.trim();
+    const title = type === 'CUSTOM' ? custom : type;
+
+    if (!email || (type === 'CUSTOM' && !custom)) {
+        alert('❌ Please fill in all fields');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
+        hideGlobalLoader();
+        return;
+    }
 
     try {
         const response = await fetch(`${window.CONFIG.API_URL}/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email, title })
         });
 
         const data = await response.json();
