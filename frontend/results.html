@@ -13,7 +13,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-content">
-            <div class="logo">
+            <div class="logo" id="navLogo">
                 📊 Election Results
             </div>
             <div class="nav-links">
@@ -58,6 +58,20 @@
         const API_URL = window.CONFIG.API_URL;
 
         loadResults();
+        loadElectionState(); // Combined check for title
+
+        async function loadElectionState() {
+            try {
+                const response = await fetch(`${API_URL}/election/state`);
+                const data = await response.json();
+                if (data.success && data.title) {
+                    const navLogo = document.getElementById('navLogo');
+                    if (navLogo) navLogo.textContent = `📊 ${data.title} Results`;
+                }
+            } catch (e) {
+                console.error("Error loading title:", e);
+            }
+        }
 
         async function loadResults() {
             try {

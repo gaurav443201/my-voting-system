@@ -163,6 +163,14 @@
                     statusBadge.className = `status-badge status-${data.state}`;
                     statusBadge.textContent = `${state === 'WAITING' ? '⏸️' : state === 'LIVE' ? '🔴' : '🔒'} ${state}`;
 
+                    // Update Title Display
+                    if (data.title) {
+                        const navLogo = document.getElementById('navLogo');
+                        const pageTitle = document.getElementById('pageTitle');
+                        if (navLogo) navLogo.textContent = `🗳️ ${data.title}`;
+                        if (pageTitle) pageTitle.textContent = `🗳️ ${data.title}`;
+                    }
+
                     // Show appropriate section
                     if (data.state === 'waiting') {
                         showSection('waitingRoom');
