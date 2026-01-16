@@ -293,7 +293,8 @@ def get_state():
         "state": election_manager.get_state(),
         "total_votes": voter_blacklist.get_count(),
         "chain_length": len(blockchain.chain),
-        "version": "2.1-Python-Reliable"
+        "chain_valid": blockchain.is_chain_valid(),
+        "version": "2.2-Integrity-Fixed"
     })
 
 @app.route('/api/results', methods=['GET'])
