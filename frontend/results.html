@@ -10,12 +10,41 @@
     <style>
         .winner-card {
             background: rgba(102, 126, 234, 0.1) !important;
-            border: 1px solid var(--primary-color) !important;
+            border: 2px solid var(--primary-color) !important;
+            padding: 2rem !important;
         }
 
-        .vote-count {
-            font-size: 1.5rem;
+        .winner-name {
+            font-size: 2.5rem !important;
             font-weight: 800;
+            margin: 0.5rem 0;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dept-header {
+            font-size: 1.5rem;
+            /* Smaller branch name */
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .candidate-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+
+        .vote-badge {
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--primary-color);
         }
     </style>
@@ -32,13 +61,12 @@
     </nav>
 
     <div class="container">
-        <h1 id="resultsElectionTitle" style="text-align: center; margin: 2rem 0; color: var(--primary-color);">Election
-            Results</h1>
-
+        <h1 id="resultsElectionTitle"
+            style="text-align: center; margin: 1.5rem 0; color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8;">
+        </h1>
         <div id="departmentResults">
             <div class="glass-card text-center" style="padding: 3rem;">
-                <div style="font-size: 3rem; margin-bottom: 1rem; animation: spin 2s linear infinite;">⌛</div>
-                <p>Loading election data from blockchain...</p>
+                <p>Loading result data...</p>
             </div>
         </div>
     </div>
@@ -56,7 +84,7 @@
                 const res = await fetch(`${API_URL}/election/state`);
                 const data = await res.json();
                 if (data.success && data.title) {
-                    document.getElementById('resultsElectionTitle').textContent = data.title + " Results";
+                    document.getElementById('resultsElectionTitle').textContent = data.title + " (Results Overview)";
                     document.title = "📊 Results | " + data.title;
                 }
             } catch (e) { console.error(e); }
@@ -69,69 +97,76 @@
                 const container = document.getElementById('departmentResults');
 
                 if (!data.success || !data.results) {
-                    container.innerHTML = `
-                        <div class="glass-card text-center" style="padding: 3rem;">
-                            <div style="font-size: 4rem; margin-bottom: 1.5rem;">⏳</div>
-                            <h2>Results Not Available Yet</h2>
-                            <p style="color: var(--text-secondary); margin: 1.5rem 0;">
-                                The election is still active. Results will appear here automatically.<br>
-                                <strong>Shadow Admins:</strong> Close the election to finalize counts.
-                            </p>
-                            <button class="btn btn-primary" onclick="window.location.reload()">🔄 Refresh Results</button>
-                        </div>`;
+                    container.innerHTML = '<div class="glass-card text-center"><h2>Results Not Ready</h2></div>';
                     return;
                 }
 
                 const departments = ['CSE', 'IT', 'ENTC', 'MECH'];
-                container.innerHTML = departments.map(dept => {
+                let hasAnyVotes = false;
+
+                const resultsHtml = departments.map(dept => {
                     const result = data.results[dept];
-                    const deptName = {
+                    if (!result || result.total_votes === 0) return ''; // Hide empty departments as requested
+
+                    hasAnyVotes = true;
+                    const deptLabels = {
                         'CSE': 'Computer Science & Engineering',
                         'IT': 'Information Technology',
                         'ENTC': 'Electronics & Telecommunication',
                         'MECH': 'Mechanical Engineering'
-                    }[dept] || dept;
+                    };
 
-                    if (!result || !result.full_breakdown || result.full_breakdown.length === 0) {
-                        return `
-                            <div class="glass-card" style="margin-bottom: 2rem;">
-                                <h2 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">${deptName}</h2>
-                                <p style="text-align: center; color: var(--text-muted); padding: 1rem;">No votes recorded for this department.</p>
-                            </div>`;
-                    }
+                    const winner = result.full_breakdown[0]; // Winner is first after sort
 
                     return `
-                        <div class="glass-card" style="margin-bottom: 2rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                                <h2 style="margin:0;">${deptName}</h2>
-                                <span class="status-badge status-live">${dept}</span>
+                        <div style="margin-bottom: 3rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; padding: 0 0.5rem;">
+                                <h2 class="dept-header">${deptLabels[dept] || dept}</h2>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">${dept}</span>
                             </div>
-                            <div style="display: grid; gap: 1rem;">
+
+                            <!-- Big Winner Card -->
+                            <div class="glass-card winner-card text-center">
+                                <div style="font-size: 1rem; color: var(--primary-color); font-weight: bold; letter-spacing: 2px;">🏆 CURRENT WINNER</div>
+                                <div class="winner-name">${winner.name}</div>
+                                <div style="font-size: 1.5rem; font-weight: 700;">${winner.votes} <span style="font-size: 1rem; font-weight: 400; color: var(--text-secondary);">Votes</span></div>
+                            </div>
+
+                            <!-- All Candidates List -->
+                            <div style="margin-top: 1.5rem; display: grid; gap: 0.5rem;">
                                 ${result.full_breakdown.map((cand, idx) => `
-                                    <div class="glass-card ${idx === 0 ? 'winner-card' : ''}" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin:0;">
-                                        <div style="display: flex; align-items: center; gap: 1rem;">
-                                            <div style="font-size: 1.5rem;">${idx === 0 ? '🏆' : '👤'}</div>
-                                            <div>
-                                                <div style="font-weight: bold; font-size: 1.1rem;">${cand.name}</div>
-                                                ${idx === 0 ? '<div style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold; letter-spacing: 1px;">WINNER</div>' : ''}
-                                            </div>
+                                    <div class="candidate-row" style="opacity: ${idx === 0 ? '1' : '0.8'}">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            <span style="color: var(--text-muted); font-size: 0.9rem;">#${idx + 1}</span>
+                                            <span style="font-weight: 500;">${cand.name}</span>
                                         </div>
-                                        <div style="text-align: right;">
-                                            <div class="vote-count">${cand.votes}</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Votes</div>
-                                        </div>
+                                        <div class="vote-badge">${cand.votes}</div>
                                     </div>
                                 `).join('')}
                             </div>
-                            <div style="margin-top: 1.5rem; text-align: right; font-size: 0.875rem; color: var(--text-secondary);">
-                                Total Department Votes: <strong>${result.total_votes}</strong>
+                            
+                            <div style="text-align: right; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                                Total Participation: ${result.total_votes}
                             </div>
-                        </div>`;
+                        </div>
+                    `;
                 }).join('');
+
+                if (!hasAnyVotes) {
+                    container.innerHTML = `
+                        <div class="glass-card text-center" style="padding: 4rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">🗳️</div>
+                            <h2>No Votes Cast Yet</h2>
+                            <p style="color: var(--text-secondary);">Results will appear as soon as the first vote is mined.</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = resultsHtml;
+                }
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('departmentResults').innerHTML = '<div class="glass-card text-center"><h2>Error connecting to blockchain</h2><p>Please try again in a few seconds.</p></div>';
+                container.innerHTML = '<div class="glass-card text-center"><h2>Error Loading Results</h2></div>';
             }
         }
 

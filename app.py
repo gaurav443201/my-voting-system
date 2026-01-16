@@ -76,22 +76,27 @@ def calculate_results():
         sorted_counts = sorted(vote_count.values(), reverse=True)
         margin = sorted_counts[0] - sorted_counts[1] if len(sorted_counts) > 1 else sorted_counts[0]
 
+        # Get ALL candidates for this department
+        dept_candidates = candidate_registry.get_by_department(dept)
         full_breakdown = []
-        for cid, count in vote_count.items():
-            cand = candidate_registry.get_candidate(cid)
+        
+        # Build breakdown including everyone (default 0 votes)
+        for cand in dept_candidates:
             full_breakdown.append({
-                "id": cid,
-                "name": cand.name if cand else "Unknown",
-                "votes": count
+                "id": cand.id,
+                "name": cand.name,
+                "votes": vote_count.get(cand.id, 0)
             })
+        
+        # Sort by votes DESC
         full_breakdown.sort(key=lambda x: x['votes'], reverse=True)
 
         results[dept] = {
             "winner": {
                 "id": winner_id,
-                "name": winner_candidate.name if winner_candidate else "Unknown",
-                "votes": vote_count[winner_id]
-            },
+                "name": winner_candidate.name if winner_candidate else "No Winner",
+                "votes": vote_count.get(winner_id, 0)
+            } if winner_id else None,
             "total_votes": len(votes),
             "full_breakdown": full_breakdown
         }
