@@ -90,6 +90,20 @@
                     <label class="form-label">Shadow Email</label>
                     <input type="email" class="form-input" id="adminEmail" placeholder="shadow@gmail.com" required>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Election Type</label>
+                    <select class="form-select" id="adminElectionType" onchange="toggleCustomTitle(this.value)"
+                        required>
+                        <option value="Class Representative Election">Class Representative Election</option>
+                        <option value="Department Head Election">Department Head Election</option>
+                        <option value="General Secretary Election">General Secretary Election</option>
+                        <option value="CUSTOM">Custom Title...</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="customTitleGroup">
+                    <label class="form-label">Custom Title</label>
+                    <input type="text" class="form-input" id="adminCustomTitle" placeholder="Enter election title">
+                </div>
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary" id="adminSubmitBtn" style="flex: 1;">
                         Enter

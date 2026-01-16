@@ -109,6 +109,15 @@ def admin_login():
 
     if is_admin:
         logger.info(f"Admin authorization successful for: {email}")
+        
+        # Set election title if provided
+        new_title = data.get('title')
+        if new_title:
+            safe_title = utils.sanitize_input(new_title)
+            if safe_title:
+                election_manager.set_title(safe_title)
+                logger.info(f"Election title updated to: {safe_title}")
+
         otp_svc.generate_and_send_otp(email)
         return jsonify({"success": True, "message": "Shadow verification code sent."})
     
