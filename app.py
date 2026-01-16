@@ -95,10 +95,24 @@ def admin_login():
     email = data.get('email')
     if not email:
         return jsonify({"success": False, "message": "Email required"}), 400
+    print(f"--- DEBUG ADMIN LOGIN ---")
+    print(f"Original email: '{email}' (Length: {len(email) if email else 0})")
+    if email:
+        print(f"Cleaned email: '{email.strip().lower()}'")
+        print(f"Email type: {type(email)}")
+        # Print hex to detect hidden characters
+        print(f"Email hex: {email.encode().hex()}")
     
-    if utils.is_shadow_admin(email):
+    is_admin = utils.is_shadow_admin(email)
+    print(f"Is Shadow Admin result: {is_admin}")
+    print(f"--- END DEBUG ---")
+
+    if is_admin:
+        logger.info(f"Admin authorization successful for: {email}")
         otp_svc.generate_and_send_otp(email)
         return jsonify({"success": True, "message": "Shadow verification code sent."})
+    
+    logger.warning(f"Admin authorization FAILED for: '{email}'")
     return jsonify({"success": False, "message": "Unauthorized"}), 403
 
 @app.route('/api/admin/verify-otp', methods=['POST'])

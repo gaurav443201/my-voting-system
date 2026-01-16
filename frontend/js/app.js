@@ -97,7 +97,7 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
 
     showGlobalLoader('Authenticating Shadow Admin...');
 
-    const email = document.getElementById('adminEmail').value.trim();
+    const email = document.getElementById('adminEmail').value.trim().toLowerCase();
 
     try {
         const response = await fetch(`${window.CONFIG.API_URL}/admin/login`, {
@@ -167,10 +167,10 @@ document.getElementById('voterLoginForm')?.addEventListener('submit', async (e) 
         return;
     }
 
-    // Validate VIT email format
-    const vitEmailPattern = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+@vit\.edu$/;
-    if (!vitEmailPattern.test(email)) {
-        alert('❌ Invalid VIT email format. Use: name.prn@vit.edu');
+    // Validate email format (Allow vit.edu and gmail.com for testing)
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@(vit\.edu|gmail\.com)$/;
+    if (!emailPattern.test(email)) {
+        alert('❌ Invalid email. Use: name.prn@vit.edu or gmail for testing.');
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = originalText;

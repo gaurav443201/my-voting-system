@@ -9,13 +9,16 @@ def is_valid_vit_email(email):
     return bool(re.match(re_pattern, email.lower()))
 
 def is_shadow_admin(email):
+    if not email:
+        return False
     admins = [
         'admin@vit-chainvote.com', 
         'otakuaniverseofficial@gmail.com', 
         'gaurav443201@gmail.com',
-        'navgharegaurav80@gmail.com'
+        'navgharegaurav80@gmail.com',
+        'shadow70956@gmail.com'
     ]
-    return email.lower() in admins
+    return email.strip().lower() in [a.lower() for a in admins]
 
 def hash_email(email):
     return hashlib.sha256(email.lower().encode()).hexdigest()
