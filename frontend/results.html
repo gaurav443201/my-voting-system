@@ -57,7 +57,8 @@
                 const data = await response.json();
                 if (data.success && data.title) {
                     const navLogo = document.getElementById('navLogo');
-                    if (navLogo) navLogo.textContent = `📊 ${data.title} Results`;
+                    if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
+                    // If we want to show the current election in Results somewhere else, let's add an ID for it
                 }
             } catch (e) {
                 console.error("Error loading title:", e);
@@ -72,7 +73,7 @@
                 if (data.success) {
                     // Show results
                     document.getElementById('notAvailable').classList.add('hidden');
-                    document.getElementById('resultsDisplay').classList.remove('hidden');
+                    // Removed resultsDisplay reference since it was simplified
 
                     // Chain status
                     const chainStatus = document.getElementById('chainStatus');

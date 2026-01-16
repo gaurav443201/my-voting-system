@@ -61,56 +61,54 @@
         <!-- Vote Confirmation -->
         <section id="voteConfirmation" class="section hidden">
             <div class="glass-card text-center">
-                <div style="font-size: 5rem; margin-bottom: 2rem;">✅</div>
-                <h2>Vote Recorded Successfully!</h2>
-
-                <div class="txid-display">
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Your vote has been mined into the blockchain
-                    </p>
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Transaction Hash (TXID)</div>
-                    <div class="txid-hash" id="transactionHash"></div>
-                    <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.875rem;">
-                        Block Index: <span id="blockIndex"></span>
-                    </div>
-                </div>
-
-                <div
-                    style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin: 2rem 0;">
-                    <h3 style="margin-bottom: 1rem;">You voted for:</h3>
-                    <div id="votedCandidate"></div>
-                </div>
-
-                <p style="color: var(--text-secondary); margin: 2rem 0;">
-                    🔒 Your vote is now immutable and secured by Proof-of-Work consensus.<br>
-                    Thank you for participating in the democratic process!
+                <div style="font-size: 5rem; margin-bottom: 2rem; animation: bounce 1s infinite;">✅</div>
+                <h1 style="color: #22c55e; font-size: 2.5rem; margin-bottom: 1rem;">Vote Successfully!</h1>
+                <p style="font-size: 1.25rem; margin-bottom: 2rem;">Your voice has been heard.</p>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Your vote has been mined into the blockchain
                 </p>
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">Transaction Hash (TXID)</div>
+                <div class="txid-hash" id="transactionHash"></div>
+                <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+                    Block Index: <span id="blockIndex"></span>
+                </div>
+            </div>
 
-                <button class="btn btn-outline" onclick="window.location.href='index.html'">
-                    Return to Home
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin: 2rem 0;">
+                <h3 style="margin-bottom: 1rem;">You voted for:</h3>
+                <div id="votedCandidate"></div>
+            </div>
+
+            <p style="color: var(--text-secondary); margin: 2rem 0;">
+                🔒 Your vote is now immutable and secured by Proof-of-Work consensus.<br>
+                Thank you for participating in the democratic process!
+            </p>
+
+            <button class="btn btn-outline" onclick="window.location.href='index.html'">
+                Return to Home
+            </button>
+    </div>
+    </section>
+
+    <!-- Already Voted -->
+    <section id="alreadyVoted" class="section hidden">
+        <div class="glass-card text-center">
+            <div style="font-size: 5rem; margin-bottom: 2rem;">🔒</div>
+            <h2>Already Voted</h2>
+            <p style="font-size: 1.25rem; color: var(--text-secondary); margin: 2rem 0;">
+                You have already cast your vote in this election.<br>
+                Each voter can only vote once per election cycle.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                    🏠 Home
+                </button>
+                <button class="btn btn-outline" onclick="window.location.href='results.html'">
+                    📊 View Results
                 </button>
             </div>
-        </section>
-
-        <!-- Already Voted -->
-        <section id="alreadyVoted" class="section hidden">
-            <div class="glass-card text-center">
-                <div style="font-size: 5rem; margin-bottom: 2rem;">🔒</div>
-                <h2>Already Voted</h2>
-                <p style="font-size: 1.25rem; color: var(--text-secondary); margin: 2rem 0;">
-                    You have already cast your vote in this election.<br>
-                    Each voter can only vote once per election cycle.
-                </p>
-                <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
-                        🏠 Home
-                    </button>
-                    <button class="btn btn-outline" onclick="window.location.href='results.html'">
-                        📊 View Results
-                    </button>
-                </div>
-            </div>
-        </section>
+        </div>
+    </section>
     </div>
 
     <script src="js/config.js?v=4"></script>
@@ -172,7 +170,7 @@
                     if (data.title) {
                         const navLogo = document.getElementById('navLogo');
                         const pageTitle = document.getElementById('pageTitle');
-                        if (navLogo) navLogo.textContent = `🗳️ ${data.title}`;
+                        if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
                         if (pageTitle) pageTitle.textContent = `🗳️ ${data.title}`;
                     }
 

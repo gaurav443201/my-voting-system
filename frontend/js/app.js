@@ -55,7 +55,7 @@ async function updateElectionStatus() {
                 const mainTitle = document.getElementById('mainTitle');
                 const pageTitle = document.getElementById('pageTitle');
 
-                if (navLogo) navLogo.textContent = `🗳️ ${data.title}`;
+                if (navLogo) navLogo.textContent = `🗳️ VIT-ChainVote`;
                 if (mainTitle) mainTitle.textContent = data.title;
                 if (pageTitle) pageTitle.textContent = `🗳️ ${data.title}`;
             }
