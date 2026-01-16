@@ -280,7 +280,13 @@ def cast_vote():
     voter_blacklist.mark_as_voted(voter_hash)
     voter_sessions.pop(email.lower(), None)
 
-    return jsonify({"success": True, "message": "Vote cast successfully", "transaction": transaction})
+    return jsonify({
+        "success": True, 
+        "message": "Vote cast successfully", 
+        "transaction_hash": blockchain.hash(transaction),
+        "block_index": transaction['index'],
+        "candidate": candidate.to_dict()
+    })
 
 @app.route('/api/voter/status', methods=['GET'])
 def get_voter_status():
